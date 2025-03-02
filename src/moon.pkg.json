@@ -1,7 +1,6 @@
 {
   "is-main": true,
   "import": [
-    "xunyoyo/NyaCSV/lib",
     "moonbitlang/x/fs"
   ]
 }
