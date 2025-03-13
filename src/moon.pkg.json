@@ -1,6 +1,4 @@
 {
   "is-main": false,
-  "import": [
-    "moonbitlang/x/fs"
-  ]
+  "import": []
 }
