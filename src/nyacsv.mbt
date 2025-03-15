@@ -4,6 +4,7 @@ struct CSV {
   rows : Array[Array[String]]
 }
 
+
 ///|
 impl Show for CSV with output(self, logger) -> Unit {
   if self.headers.is_empty() {
@@ -110,31 +111,97 @@ impl Show for CSV with to_string(self) -> String {
 }
 
 ///|
+impl ToJson for CSV with to_json(self) -> Json {
+  let result_array : Array[Json] = Array::new()
+  for row in self.rows {
+    let row_obj = Map::new()
+    for i in 0..<@math.minimum(row.length(), self.headers.length()) {
+      let header = self.headers[i]
+      let value = row[i]
+      row_obj[header] = String(value)
+    }
+
+    // 如果行的字段少于标题数，用 null 填充缺少的字段
+    for i in row.length()..<self.headers.length() {
+      let header = self.headers[i]
+      row_obj[header] = Null
+    }
+    result_array.push(Object(row_obj))
+  }
+  Array(result_array)
+}
+
+///|
 pub fn CSV::new() -> CSV {
   let headers : Array[String] = Array::new()
   let rows : Array[Array[String]] = Array::new()
   { headers, rows }
 }
 
+// ///|
+// pub fn CSV::parse_string(input : String) -> CSV {
+//   let parsed_data = parse_string(input)
+//   let csv = CSV::new()
+//   if parsed_data.length() > 0 {
+//     for item in parsed_data[0] {
+//       csv.headers.push(item)
+//     }
+//     if parsed_data.length() > 1 {
+//       for i = 1; i < parsed_data.length(); i = i + 1 {
+//         csv.rows.push(parsed_data[i])
+//       }
+//     }
+//   }
+//   csv
+// }
+
 ///|
-pub fn CSV::parse(input : String) -> CSV {
-  let parsed_data = parse_csv(input)
-  let csv = CSV::new()
-  if parsed_data.length() > 0 {
-    for item in parsed_data[0] {
-      csv.headers.push(item)
-    }
-    if parsed_data.length() > 1 {
-      for i = 1; i < parsed_data.length(); i = i + 1 {
-        csv.rows.push(parsed_data[i])
+pub fn CSV::from_json(json : Json) -> Result[CSV, String] {
+  match json {
+    Json::Array(array) => {
+      let csv = CSV::new()
+      if array.is_empty() {
+        return Ok(csv)
+      }
+      match array[0] {
+        Json::Object(first_obj) => {
+          for key in first_obj.keys() {
+            csv.headers.push(key)
+          }
+          for item in array {
+            match item {
+              Json::Object(obj) => {
+                let row : Array[String] = Array::make(csv.headers.length(), "")
+                for i in 0..<csv.headers.length() {
+                  let key = csv.headers[i]
+                  if obj.contains(key) {
+                    row[i] = obj[key].to_string()
+                  }
+                }
+                csv.rows.push(row)
+              }
+              _ => return Err("JSON array contains non-object element")
+            }
+          }
+          Ok(csv)
+        }
+        _ => Err("First element of JSON array is not an object")
       }
     }
+    _ => Err("JSON is not an array")
   }
-  csv
 }
 
 ///|
-test {
-  let csv = CSV::parse("a,b,c\n1,\"\",\"\"\n2,3,4")
-  csv |> println
-}
+// test {
+//   let csv = CSV::parse_string(
+//     "key,val\n1,\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [102.0, 0.5]}\"\n",
+//   )
+//   csv |> println
+// }
+
+// ///|
+// test {
+//   let csv = CSV::parse_string("a,b,c\n1,2,3\n4,5,ʤ")
+//   csv |> println
+// }
