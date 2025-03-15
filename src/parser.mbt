@@ -1,75 +1,125 @@
-fn parse_csv(input : String) -> Array[Array[String]] {
+///|
+pub fn parse[T : CSVReader](
+  reader : T,
+  options~ : CSVOptions = {
+    delimiter: ',',
+    allow_newlines_in_quotes: true,
+    quote_char: '"',
+    skip_empty_lines: true,
+    trim_spaces: false,
+  }
+) -> Array[Array[String]] {
   let rows : Array[Array[String]] = Array::new()
   let mut row = Array::make(0, "")
   let mut field = StringBuilder::new()
   let mut in_quotes = false
-  let mut i = 0
-  
-  while i < input.length() {
-    let ch = input[i]
+  while not(reader.is_eof()) {
+    let mut ch = reader.read_char().unwrap()
 
     // 处理 Windows 格式换行的 \r
     if ch == '\r' {
-      i += 1
-      continue
+      if reader.peek_char() == Some('\n') {
+        continue // 跳过 \r，之后将处理 \n
+      } else if options.allow_newlines_in_quotes && in_quotes {
+        field.write_char(ch)
+        continue
+      } else {
+        // 将单独的 \r 视为换行
+        ch = '\n'
+      }
     }
-
     if in_quotes {
-      if ch == '"' {
+      if ch == options.quote_char {
         // 遇到引号，看下一个字符以判断转义或结束
-        if i + 1 < input.length() && input[i + 1] == '"' {
+        if not(reader.is_eof()) &&
+          reader.peek_char() == Some(options.quote_char) {
           // 连续两个引号，表示数据中的一个引号
-          field.write_char('"')
-          i += 1 // 跳过转义的第二个引号
+          field.write_char(options.quote_char)
+          reader.read_char() |> ignore // 跳过转义的第二个引号
         } else {
           // 引号闭合，退出引号模式
           in_quotes = false
         }
-      } else {
-        // 引号内普通字符，加入当前字段
-        field.write_char(ch)
-      }
-    } else {
-      if ch == '"' {
-        // 遇到引号，进入引号模式（开始读取引用字段）
-        in_quotes = true
-      } else if ch == ',' {
-        // 遇到分隔符，当前字段结束
+      } else if ch == '\n' && not(options.allow_newlines_in_quotes) {
+        // 如果不允许引号内换行但遇到了换行，强制结束引号
+        in_quotes = false
+
+        // 处理当前行
         row.push(field.to_string())
-        field = StringBuilder::new() // 创建新的字段构建器
-      } else if ch == '\n' {
-        // 遇到换行且不在引号内，当前记录结束
-        row.push(field.to_string())
-        
-        // 检查是否为有效行（非空或非最后一个换行符）
-        if not(row.is_empty()) {
+        if not(row.is_empty()) || not(options.skip_empty_lines) {
           rows.push(row)
         }
-        
+
         // 重置用于下一行
         row = Array::make(0, "")
         field = StringBuilder::new()
       } else {
-        // 普通字符，累积到当前字段
+        // 引号内普通字符，加入当前字段
         field.write_char(ch)
       }
+    } else if ch == options.quote_char {
+      // 遇到引号，进入引号模式（开始读取引用字段）
+      // 只有当字段为空时才进入引号模式
+      if field.is_empty() {
+        in_quotes = true
+      } else {
+        // 字段非空时遇到引号，视为普通字符
+        field.write_char(ch)
+      }
+    } else if ch == options.delimiter {
+      // 遇到分隔符，当前字段结束
+      if options.trim_spaces {
+        row.push(field.to_string().trim("\n").trim("\r").trim("\t").trim(" "))
+      } else {
+        row.push(field.to_string())
+      }
+      field = StringBuilder::new() // 创建新的字段构建器
+    } else if ch == '\n' {
+      // 遇到换行且不在引号内，当前记录结束
+      if options.trim_spaces {
+        row.push(field.to_string().trim("\n").trim("\r").trim("\t").trim(" "))
+      } else {
+        row.push(field.to_string())
+      }
+
+      // 检查是否为有效行（非空或配置允许空行）
+      if not(row.is_empty()) || not(options.skip_empty_lines) {
+        rows.push(row)
+      }
+
+      // 重置用于下一行
+      row = Array::make(0, "")
+      field = StringBuilder::new()
+    } else {
+      // 普通字符，累积到当前字段
+      field.write_char(ch)
     }
-    i += 1
   }
 
   // 循环结束后，加入最后的字段和行（如果有）
-  if not(field.is_empty()) {
-    row.push(field.to_string())
+  if not(field.is_empty()) || row.length() > 0 {
+    if options.trim_spaces {
+      row.push(field.to_string().trim("\n").trim("\r").trim("\t").trim(" "))
+    } else {
+      row.push(field.to_string())
+    }
+    if not(row.is_empty()) || not(options.skip_empty_lines) {
+      rows.push(row)
+    }
   }
-  if not(row.is_empty()) {
-    rows.push(row)
-  }
-  
   rows
 }
 
+///|
 test {
-  parse_csv("a,b,c\n1,2,3\n4,5,ʤ") |> println
+  let reader : BytesReader  = {source : Bytes::of_string("a,b,c\n1,2,3\n4,5,ʤ"), pos : 0}
+  parse(reader) |> println
+}
+
+///|
+test {
+  let reader : StringReader  = {source : @moonbitlang::of_string("a,b,c\n1,2,3\n4,5,ʤ"), pos : 0}
+  parse(reader) |> println
 }
 
 /// "first,last,address,city,zip\nJohn,Doe,120 any st.,\"Anytown, WW\",08123"
