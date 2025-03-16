@@ -1,11 +1,11 @@
 {
   "name": "xunyoyo/NyaCSV",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "deps": {},
   "readme": "README.md",
-  "repository": "",
+  "repository": "https://github.com/moonbit-community/NyaCSV",
   "license": "Apache-2.0",
-  "keywords": [],
-  "description": "",
+  "keywords": ["CSV","Parser"],
+  "description": "Purr-fectly parse your CSV files with delightful simplicity!",
   "source": "src"
 }
