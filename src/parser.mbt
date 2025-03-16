@@ -19,8 +19,18 @@ fn parse[T : CSVReader](
     // 处理 Windows 格式换行的 \r
     if ch == '\r' {
       if reader.peek_char() == Some('\n') {
-        continue // 跳过 \r，之后将处理 \n
+        if in_quotes && options.allow_newlines_in_quotes {
+          // 在引号内，需要同时处理 \r 和 \n
+          field.write_char(ch)  // 写入 \r
+          reader.read_char() |> ignore  // 消费 \n
+          field.write_char('\n')  // 写入 \n
+          continue  // 继续下一轮循环
+        } else {
+          // 不在引号内，跳过 \r，之后将处理 \n
+          continue
+        }
       } else if options.allow_newlines_in_quotes && in_quotes {
+        // 单独的 \r
         field.write_char(ch)
         continue
       } else {
