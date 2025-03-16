@@ -1,5 +1,5 @@
 ///|
-pub fn parse[T : CSVReader](
+fn parse[T : CSVReader](
   reader : T,
   options~ : CSVOptions = {
     delimiter: ',',
@@ -108,18 +108,6 @@ pub fn parse[T : CSVReader](
     }
   }
   rows
-}
-
-///|
-test {
-  let reader : BytesReader  = {source : Bytes::of_string("a,b,c\n1,2,3\n4,5,ʤ"), pos : 0}
-  parse(reader) |> println
-}
-
-///|
-test {
-  let reader : StringReader  = {source : @moonbitlang::of_string("a,b,c\n1,2,3\n4,5,ʤ"), pos : 0}
-  parse(reader) |> println
 }
 
 /// "first,last,address,city,zip\nJohn,Doe,120 any st.,\"Anytown, WW\",08123"
