@@ -1,14 +1,24 @@
 ///|
-struct CSVOptions {
-  /// 字段分隔符，默认为逗号
+/// Represents configuration options for CSV parsing operations.
+///
+/// Parameters:
+///
+/// * `delimiter` : Character used to separate fields in the CSV data (typically
+/// a comma ',').
+/// * `allow_newlines_in_quotes` : Boolean flag indicating whether newline
+/// characters are allowed within quoted fields.
+/// * `quote_char` : Character used for quoting fields that contain special
+/// characters (typically a double quote '"').
+/// * `skip_empty_lines` : Boolean flag indicating whether empty lines in the
+/// input should be ignored.
+/// * `trim_spaces` : Boolean flag indicating whether leading and trailing
+/// whitespace should be removed from fields.
+///
+pub struct CSVOptions {
   delimiter : Char
-  /// 是否允许换行符在引号内
   allow_newlines_in_quotes : Bool
-  /// 引号字符
   quote_char : Char
-  /// 是否跳过空行
   skip_empty_lines : Bool
-  /// 是否忽略行尾空格
   trim_spaces : Bool
 }
 
@@ -52,8 +62,8 @@ impl CSVReader for StringReader with is_eof(self) -> Bool {
 
 ///|
 struct BufferReader {
-  mut pos : Int
   bytes : Bytes
+  mut pos : Int
 }
 
 ///|
