@@ -23,14 +23,14 @@ pub struct CSVOptions {
 }
 
 ///|
-trait CSVReader {
+priv trait CSVReader {
   read_char(Self) -> Char?
   peek_char(Self) -> Char?
   is_eof(Self) -> Bool
 }
 
 ///|
-struct StringReader {
+priv struct StringReader {
   source : String
   mut pos : Int
 }
@@ -61,7 +61,7 @@ impl CSVReader for StringReader with is_eof(self) -> Bool {
 }
 
 ///|
-struct BufferReader {
+priv struct BufferReader {
   bytes : Bytes
   mut pos : Int
 }
@@ -130,7 +130,7 @@ impl CSVReader for BufferReader with is_eof(self) -> Bool {
 }
 
 ///|
-struct BytesReader {
+priv struct BytesReader {
   source : Bytes
   mut pos : Int
 }
