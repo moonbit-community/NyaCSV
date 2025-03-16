@@ -1,0 +1,26 @@
+package xunyoyo/NyaCSV
+
+alias @moonbitlang/core/buffer as @buffer
+
+// Values
+
+// Types and methods
+type CSV
+impl CSV {
+  new() -> Self
+  parse_buffer(@buffer.T, options~ : CSVOptions = ..) -> Self
+  parse_string(String, options~ : CSVOptions = ..) -> Self
+}
+
+pub struct CSVOptions {
+  delimiter : Char
+  allow_newlines_in_quotes : Bool
+  quote_char : Char
+  skip_empty_lines : Bool
+  trim_spaces : Bool
+}
+
+// Type aliases
+
+// Traits
+
