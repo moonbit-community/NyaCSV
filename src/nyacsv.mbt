@@ -1,9 +1,17 @@
 ///|
+/// Represents a CSV (Comma-Separated Values) data structure with headers and
+/// rows.
+///
+/// Parameters:
+///
+/// * `headers` : An array of strings representing the column names in the CSV.
+/// * `rows` : A two-dimensional array where each inner array represents a row of
+/// data, with each element corresponding to a column defined in the headers.
+///
 struct CSV {
   headers : Array[String]
   rows : Array[Array[String]]
 }
-
 
 ///|
 impl Show for CSV with output(self, logger) -> Unit {
@@ -111,97 +119,134 @@ impl Show for CSV with to_string(self) -> String {
 }
 
 ///|
-impl ToJson for CSV with to_json(self) -> Json {
-  let result_array : Array[Json] = Array::new()
-  for row in self.rows {
-    let row_obj = Map::new()
-    for i in 0..<@math.minimum(row.length(), self.headers.length()) {
-      let header = self.headers[i]
-      let value = row[i]
-      row_obj[header] = String(value)
-    }
-
-    // 如果行的字段少于标题数，用 null 填充缺少的字段
-    for i in row.length()..<self.headers.length() {
-      let header = self.headers[i]
-      row_obj[header] = Null
-    }
-    result_array.push(Object(row_obj))
-  }
-  Array(result_array)
-}
-
-///|
+/// Creates a new empty CSV structure with no headers and no rows.
+///
+/// Returns a new CSV instance with empty headers and rows arrays.
+///
 pub fn CSV::new() -> CSV {
   let headers : Array[String] = Array::new()
   let rows : Array[Array[String]] = Array::new()
   { headers, rows }
 }
 
-// ///|
-// pub fn CSV::parse_string(input : String) -> CSV {
-//   let parsed_data = parse_string(input)
-//   let csv = CSV::new()
-//   if parsed_data.length() > 0 {
-//     for item in parsed_data[0] {
-//       csv.headers.push(item)
-//     }
-//     if parsed_data.length() > 1 {
-//       for i = 1; i < parsed_data.length(); i = i + 1 {
-//         csv.rows.push(parsed_data[i])
-//       }
-//     }
-//   }
-//   csv
-// }
-
 ///|
-pub fn CSV::from_json(json : Json) -> Result[CSV, String] {
-  match json {
-    Json::Array(array) => {
-      let csv = CSV::new()
-      if array.is_empty() {
-        return Ok(csv)
-      }
-      match array[0] {
-        Json::Object(first_obj) => {
-          for key in first_obj.keys() {
-            csv.headers.push(key)
-          }
-          for item in array {
-            match item {
-              Json::Object(obj) => {
-                let row : Array[String] = Array::make(csv.headers.length(), "")
-                for i in 0..<csv.headers.length() {
-                  let key = csv.headers[i]
-                  if obj.contains(key) {
-                    row[i] = obj[key].to_string()
-                  }
-                }
-                csv.rows.push(row)
-              }
-              _ => return Err("JSON array contains non-object element")
-            }
-          }
-          Ok(csv)
-        }
-        _ => Err("First element of JSON array is not an object")
-      }
-    }
-    _ => Err("JSON is not an array")
+fn CSV::from_array(
+  data : Array[Array[String]],
+  has_header~ : Bool = true,
+  generate_headers~ : Bool = true
+) -> CSV {
+  if data.is_empty() {
+    CSV::new()
+  } else if has_header {
+    let headers = data[0]
+    let rows = data[1:data.length()].iter().collect()
+    { headers, rows }
+  } else if generate_headers {
+    let column_count = if data.length() > 0 { data[0].length() } else { 0 }
+    let headers = Array::makei(column_count, fn(i) { "column\{i+1}" })
+    { headers, rows: data }
+  } else {
+    let column_count = if data.length() > 0 { data[0].length() } else { 0 }
+    let headers = Array::make(column_count, "")
+    { headers, rows: data }
   }
 }
 
 ///|
-// test {
-//   let csv = CSV::parse_string(
-//     "key,val\n1,\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [102.0, 0.5]}\"\n",
-//   )
-//   csv |> println
-// }
+/// Parses a CSV (Comma-Separated Values) string into a structured CSV object.
+///
+/// Parameters:
+///
+/// * `csv_string` : A string containing CSV data to be parsed.
+/// * `options` : A configuration object of type `CSVOptions` that controls the
+/// parsing behavior with the following fields:
+///  * `delimiter` : The character used to separate fields (default: ',')
+///  * `allow_newlines_in_quotes` : Whether to allow newlines within quoted
+/// fields (default: true)
+///  * `quote_char` : The character used for quoting fields (default: '"')
+///  * `skip_empty_lines` : Whether to ignore empty lines in the input (default:
+/// true)
+///  * `trim_spaces` : Whether to remove leading and trailing whitespace from
+/// fields (default: false)
+///
+/// Returns a `CSV` object containing the parsed data, with headers from the
+/// first row and subsequent rows as data.
+pub fn CSV::parse_string(
+  data : String,
+  options~ : CSVOptions = {
+    delimiter: ',',
+    allow_newlines_in_quotes: true,
+    quote_char: '"',
+    skip_empty_lines: true,
+    trim_spaces: false,
+  }
+) -> CSV {
+  let reader : StringReader = { source: data, pos: 0 }
+  CSV::from_array(parse(reader, options~))
+}
 
-// ///|
-// test {
-//   let csv = CSV::parse_string("a,b,c\n1,2,3\n4,5,ʤ")
-//   csv |> println
-// }
+///|
+/// Parses a buffer containing CSV data into a structured CSV object.
+///
+/// Parameters:
+///
+/// * `buffer` : A buffer containing the CSV data to be parsed.
+/// * `options` : A configuration object of type `CSVOptions` that controls
+/// parsing behavior with the following fields:
+///  * `delimiter` : The character used to separate fields (default: ',')
+///  * `allow_newlines_in_quotes` : Whether to allow newlines within quoted
+/// fields (default: true)
+///  * `quote_char` : The character used for quoting fields (default: '"')
+///  * `skip_empty_lines` : Whether to ignore empty lines in the input (default:
+/// true)
+///  * `trim_spaces` : Whether to remove leading and trailing whitespace from
+/// fields (default: false)
+///
+/// Returns a `CSV` object containing the parsed data, with headers from the
+/// first row and subsequent rows as data.
+pub fn CSV::parse_buffer(
+  data : @moonbitlang/core/buffer.T,
+  options~ : CSVOptions = {
+    delimiter: ',',
+    allow_newlines_in_quotes: true,
+    quote_char: '"',
+    skip_empty_lines: true,
+    trim_spaces: false,
+  }
+) -> CSV {
+  let reader : BufferReader = { bytes: data.contents(), pos: 0 }
+  CSV::from_array(parse(reader, options~))
+}
+
+///|
+/// Parses binary data containing CSV content into a structured CSV object.
+///
+/// Parameters:
+///
+/// * `data` : A sequence of bytes containing the CSV content to be parsed.
+/// * `options` : A configuration object that controls parsing behavior with the
+/// following fields:
+///  * `delimiter` : The character used to separate fields (default: ',')
+///  * `allow_newlines_in_quotes` : Whether to allow newlines within quoted
+/// fields (default: true)
+///  * `quote_char` : The character used for quoting fields (default: '"')
+///  * `skip_empty_lines` : Whether to ignore empty lines in the input (default:
+/// true)
+///  * `trim_spaces` : Whether to remove leading and trailing whitespace from
+/// fields (default: false)
+///
+/// Returns a `CSV` object containing the parsed data, with headers from the
+/// first row and subsequent rows as data.
+fn CSV::parse_bytes(
+  data : Bytes,
+  options~ : CSVOptions = {
+    delimiter: ',',
+    allow_newlines_in_quotes: true,
+    quote_char: '"',
+    skip_empty_lines: true,
+    trim_spaces: false,
+  }
+) -> CSV {
+  let reader : BytesReader = { source: data, pos: 0 }
+  CSV::from_array(parse(reader, options~))
+}
