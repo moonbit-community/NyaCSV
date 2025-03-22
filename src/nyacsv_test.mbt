@@ -2,7 +2,7 @@
 test "CSV::output/empty_csv" {
   let csv = CSV::new()
   let logger = @buffer.new()
-  println(csv)
+  csv.output(logger)
   inspect!(logger.contents().to_unchecked_string(), content="<Empty CSV>")
 }
 
