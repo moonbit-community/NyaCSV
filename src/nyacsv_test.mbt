@@ -138,7 +138,10 @@ test "CSV::parse_string/quoted_with_internal_quotes" {
   let data = "a,b\n1,\"ha \"\"ha\"\" ha\"\n3,4\n"
   let csv = CSV::parse_string(data)
   inspect!(csv.header(), content="[\"a\", \"b\"]")
-  inspect!(csv.data(), content="[[\"1\", \"ha \\\"ha\\\" ha\"], [\"3\", \"4\"]]")
+  inspect!(
+    csv.data(),
+    content="[[\"1\", \"ha \\\"ha\\\" ha\"], [\"3\", \"4\"]]",
+  )
 
   // 验证内部引号正确处理
   assert_eq!(csv.data()[0][1], "ha \"ha\" ha")
@@ -149,7 +152,10 @@ test "CSV::parse_string/quoted_with_internal_quotes" {
   let data = "a,b\n1,\"ha \"\"ha\"\" ha\"\n3,4\n"
   let csv = CSV::parse_string(data)
   inspect!(csv.header(), content="[\"a\", \"b\"]")
-  inspect!(csv.data(), content="[[\"1\", \"ha \\\"ha\\\" ha\"], [\"3\", \"4\"]]")
+  inspect!(
+    csv.data(),
+    content="[[\"1\", \"ha \\\"ha\\\" ha\"], [\"3\", \"4\"]]",
+  )
 
   // 验证内部引号正确处理
   assert_eq!(csv.data()[0][1], "ha \"ha\" ha")
@@ -211,7 +217,10 @@ test "CSV::parse_string/unicode_characters" {
   let data = "a,b,c\n1,2,3\n4,5,ʤ"
   let csv = CSV::parse_string(data)
   inspect!(csv.header(), content="[\"a\", \"b\", \"c\"]")
-  inspect!(csv.data(), content="[[\"1\", \"2\", \"3\"], [\"4\", \"5\", \"ʤ\"]]")
+  inspect!(
+    csv.data(),
+    content="[[\"1\", \"2\", \"3\"], [\"4\", \"5\", \"ʤ\"]]",
+  )
 
   // 验证Unicode字符正确处理
   assert_eq!(csv.data()[1][2], "ʤ")
@@ -220,7 +229,7 @@ test "CSV::parse_string/unicode_characters" {
 ///|
 test "CSV::parse_string/custom_delimiter" {
   let data = "first;last;address\nJohn;Doe;\"120 any st., Anytown\""
-  let csv = CSV::parse_string(data, options= CSVOptions::{
+  let csv = CSV::parse_string(data, options=CSVOptions::{
     delimiter: ';',
     allow_newlines_in_quotes: true,
     quote_char: '"',
@@ -228,7 +237,10 @@ test "CSV::parse_string/custom_delimiter" {
     trim_spaces: false,
   })
   inspect!(csv.header(), content="[\"first\", \"last\", \"address\"]")
-  inspect!(csv.data(), content="[[\"John\", \"Doe\", \"120 any st., Anytown\"]]")
+  inspect!(
+    csv.data(),
+    content="[[\"John\", \"Doe\", \"120 any st., Anytown\"]]",
+  )
 
   // 验证自定义分隔符正确工作
   assert_eq!(csv.data()[0][2], "120 any st., Anytown")

@@ -21,10 +21,10 @@ fn parse[T : CSVReader](
       if reader.peek_char() == Some('\n') {
         if in_quotes && options.allow_newlines_in_quotes {
           // 在引号内，需要同时处理 \r 和 \n
-          field.write_char(ch)  // 写入 \r
-          reader.read_char() |> ignore  // 消费 \n
-          field.write_char('\n')  // 写入 \n
-          continue  // 继续下一轮循环
+          field.write_char(ch) // 写入 \r
+          reader.read_char() |> ignore // 消费 \n
+          field.write_char('\n') // 写入 \n
+          continue // 继续下一轮循环
         } else {
           // 不在引号内，跳过 \r，之后将处理 \n
           continue

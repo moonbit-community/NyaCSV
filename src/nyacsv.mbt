@@ -13,12 +13,12 @@ struct CSV {
   rows : Array[Array[String]]
 }
 
-///|
+///| header of the CSV.
 pub fn CSV::header(self : CSV) -> Array[String] {
   self.headers
 }
 
-///|
+///| data of the CSV.
 pub fn CSV::data(self : CSV) -> Array[Array[String]] {
   self.rows
 }
@@ -198,13 +198,6 @@ pub fn CSV::new() -> CSV {
 }
 
 ///|
-test "CSV::new/basic" {
-  let csv = CSV::new()
-  inspect!(csv.headers, content="[]")
-  inspect!(csv.rows, content="[]")
-}
-
-///|
 pub fn CSV::from_array(
   data : Array[Array[String]],
   has_header~ : Bool = true,
@@ -261,136 +254,6 @@ pub fn CSV::parse_string(
 }
 
 ///|
-test "CSV::parse_string/basic_with_quoted_field" {
-  let data = "first,last,address,city,zip\nJohn,Doe,120 any st.,\"Anytown, WW\",08123"
-  let csv = CSV::parse_string(data)
-  inspect!(
-    csv.headers,
-    content="[\"first\", \"last\", \"address\", \"city\", \"zip\"]",
-  )
-  inspect!(
-    csv.rows,
-    content="[[\"John\", \"Doe\", \"120 any st.\", \"Anytown, WW\", \"08123\"]]",
-  )
-
-  // 验证引号字段正确解析
-  assert_eq!(csv.rows[0][3], "Anytown, WW")
-}
-
-///|
-test "CSV::parse_string/crlf_with_empty_fields" {
-  let data = "a,b,c\r\n1,\"\",\"\"\r\n2,3,4"
-  let csv = CSV::parse_string(data)
-  inspect!(csv.headers, content="[\"a\", \"b\", \"c\"]")
-  inspect!(csv.rows, content="[[\"1\", \"\", \"\"], [\"2\", \"3\", \"4\"]]")
-
-  // 验证空引号字段正确解析为空字符串
-  assert_eq!(csv.rows[0][1], "")
-  assert_eq!(csv.rows[0][2], "")
-}
-
-///|
-test "CSV::parse_string/quoted_with_internal_quotes" {
-  let data = "a,b\n1,\"ha \"\"ha\"\" ha\"\n3,4\n"
-  let csv = CSV::parse_string(data)
-  inspect!(csv.headers, content="[\"a\", \"b\"]")
-  inspect!(csv.rows, content="[[\"1\", \"ha \\\"ha\\\" ha\"], [\"3\", \"4\"]]")
-
-  // 验证内部引号正确处理
-  assert_eq!(csv.rows[0][1], "ha \"ha\" ha")
-}
-
-///|
-test "CSV::parse_string/quoted_with_internal_quotes" {
-  let data = "a,b\n1,\"ha \"\"ha\"\" ha\"\n3,4\n"
-  let csv = CSV::parse_string(data)
-  inspect!(csv.headers, content="[\"a\", \"b\"]")
-  inspect!(csv.rows, content="[[\"1\", \"ha \\\"ha\\\" ha\"], [\"3\", \"4\"]]")
-
-  // 验证内部引号正确处理
-  assert_eq!(csv.rows[0][1], "ha \"ha\" ha")
-}
-
-///|
-test "CSV::parse_string/json_in_field" {
-  let data = "key,val\n1,\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [102.0, 0.5]}\"\n"
-  let csv = CSV::parse_string(data)
-  inspect!(csv.headers, content="[\"key\", \"val\"]")
-  // 验证JSON字符串被正确解析
-  assert_eq!(
-    csv.rows[0][1],
-    "{\"type\": \"Point\", \"coordinates\": [102.0, 0.5]}",
-  )
-}
-
-///|
-test "CSV::parse_string/special_characters" {
-  let data = "Contact Phone Number,Location Coordinates,Cities,Counties\n2095257564,37�36'37.8\"N 121�2'17.9\"W,Modesto,Stanislaus"
-  let csv = CSV::parse_string(data)
-  inspect!(
-    csv.headers,
-    content="[\"Contact Phone Number\", \"Location Coordinates\", \"Cities\", \"Counties\"]",
-  )
-  // 验证特殊字符被正确处理
-  assert_eq!(csv.rows[0][1], "37�36'37.8\"N 121�2'17.9\"W")
-}
-
-///|
-test "CSV::parse_string/multiline_fields_crlf" {
-  let data = "a,b,c\r\n1,2,3\r\n\"Once upon \r\na time\",5,6\r\n7,8,9\r\n"
-  let csv = CSV::parse_string(data)
-  inspect!(csv.headers, content="[\"a\", \"b\", \"c\"]")
-  // 验证多行字段正确处理
-  assert_eq!(csv.rows[1][0], "Once upon \r\na time")
-}
-
-///|
-test "CSV::parse_string/multiline_fields_lf" {
-  let data = "a,b,c\n1,2,3\n\"Once upon \na time\",5,6\n7,8,9\n"
-  let csv = CSV::parse_string(data)
-  inspect!(csv.headers, content="[\"a\", \"b\", \"c\"]")
-
-  // 验证LF换行符的多行字段正确处理
-  assert_eq!(csv.rows[1][0], "Once upon \na time")
-}
-
-///|
-test "CSV::parse_string/simple_crlf" {
-  let data = "a,b,c\r\n1,2,3\r\n"
-  let csv = CSV::parse_string(data)
-  inspect!(csv.headers, content="[\"a\", \"b\", \"c\"]")
-  inspect!(csv.rows, content="[[\"1\", \"2\", \"3\"]]")
-}
-
-///|
-test "CSV::parse_string/unicode_characters" {
-  let data = "a,b,c\n1,2,3\n4,5,ʤ"
-  let csv = CSV::parse_string(data)
-  inspect!(csv.headers, content="[\"a\", \"b\", \"c\"]")
-  inspect!(csv.rows, content="[[\"1\", \"2\", \"3\"], [\"4\", \"5\", \"ʤ\"]]")
-
-  // 验证Unicode字符正确处理
-  assert_eq!(csv.rows[1][2], "ʤ")
-}
-
-///|
-test "CSV::parse_string/custom_delimiter" {
-  let data = "first;last;address\nJohn;Doe;\"120 any st., Anytown\""
-  let csv = CSV::parse_string(data, options={
-    delimiter: ';',
-    allow_newlines_in_quotes: true,
-    quote_char: '"',
-    skip_empty_lines: true,
-    trim_spaces: false,
-  })
-  inspect!(csv.headers, content="[\"first\", \"last\", \"address\"]")
-  inspect!(csv.rows, content="[[\"John\", \"Doe\", \"120 any st., Anytown\"]]")
-
-  // 验证自定义分隔符正确工作
-  assert_eq!(csv.rows[0][2], "120 any st., Anytown")
-}
-
-///|
 /// Parses a buffer containing CSV data into a structured CSV object.
 ///
 /// Parameters:
@@ -442,7 +305,7 @@ pub fn CSV::parse_buffer(
 ///
 /// Returns a `CSV` object containing the parsed data, with headers from the
 /// first row and subsequent rows as data.
-fn CSV::parse_bytes(
+pub fn CSV::parse_bytes(
   data : Bytes,
   options~ : CSVOptions = {
     delimiter: ',',
