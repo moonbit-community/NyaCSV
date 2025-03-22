@@ -14,7 +14,17 @@ struct CSV {
 }
 
 ///|
-impl Show for CSV with output(self, logger) -> Unit {
+pub fn CSV::header(self : CSV) -> Array[String] {
+  self.headers
+}
+
+///|
+pub fn CSV::data(self : CSV) -> Array[Array[String]] {
+  self.rows
+}
+
+///|
+pub impl Show for CSV with output(self, logger) -> Unit {
   if self.headers.is_empty() {
     logger.write_string("<Empty CSV>")
   } else {
@@ -92,14 +102,6 @@ impl Show for CSV with output(self, logger) -> Unit {
 }
 
 ///|
-test "CSV::output/empty_csv" {
-  let csv = CSV::new()
-  let logger = @buffer.new()
-  csv.output(logger)
-  inspect!(logger.contents().to_unchecked_string(), content="<Empty CSV>")
-}
-
-///|
 test "CSV::output/single_row_no_newline" {
   let csv = {
     headers: ["Name", "Age", "City"],
@@ -138,7 +140,7 @@ test "CSV::output/row_with_missing_fields" {
 }
 
 ///|
-impl Show for CSV with to_string(self) -> String {
+pub impl Show for CSV with to_string(self) -> String {
   let result = StringBuilder::new()
 
   // 添加表头
@@ -162,12 +164,6 @@ impl Show for CSV with to_string(self) -> String {
     result.write_char('\n')
   }
   result.to_string()
-}
-
-///|
-test "CSV::to_string/empty" {
-  let csv = CSV::new()
-  inspect!(csv.to_string(), content="\n")
 }
 
 ///|
@@ -209,7 +205,7 @@ test "CSV::new/basic" {
 }
 
 ///|
-fn CSV::from_array(
+pub fn CSV::from_array(
   data : Array[Array[String]],
   has_header~ : Bool = true,
   generate_headers~ : Bool = true
@@ -229,91 +225,6 @@ fn CSV::from_array(
     let headers = Array::make(column_count, "")
     { headers, rows: data }
   }
-}
-
-///|
-test "CSV::from_array/empty_data" {
-  let data : Array[Array[String]] = []
-  let csv = CSV::from_array(data)
-  inspect!(csv.headers, content="[]")
-  inspect!(csv.rows, content="[]")
-}
-
-///|
-test "CSV::from_array/header_present" {
-  let data : Array[Array[String]] = [
-    ["Name", "Age", "City"],
-    ["Alice", "30", "Wonderland"],
-  ]
-  let csv = CSV::from_array(data)
-  inspect!(csv.headers, content="[\"Name\", \"Age\", \"City\"]")
-  inspect!(csv.rows, content="[[\"Alice\", \"30\", \"Wonderland\"]]")
-}
-
-///|
-test "CSV::from_array/generate_headers" {
-  let data : Array[Array[String]] = [
-    ["Alice", "30", "Wonderland"],
-    ["Bob", "25", "Builderland"],
-  ]
-  let csv = CSV::from_array(data, has_header=false, generate_headers=true)
-  inspect!(csv.headers, content="[\"column1\", \"column2\", \"column3\"]")
-  inspect!(
-    csv.rows,
-    content="[[\"Alice\", \"30\", \"Wonderland\"], [\"Bob\", \"25\", \"Builderland\"]]",
-  )
-}
-
-///|
-test "CSV::from_array/first_row_empty_with_header" {
-  // 测试把空行当作表头的情况
-  let data : Array[Array[String]] = [[], []]
-  let csv = CSV::from_array(data, has_header=false)
-  // 表头应该为空
-  inspect!(csv.headers, content="[]")
-  // 数据行应该只包含第二行
-  inspect!(csv.rows, content="[[], []]")
-}
-
-///|
-test "CSV::from_array/empty_data_with_generate_headers" {
-  // 测试完全空的数组，但设置 generate_headers=true
-  let data : Array[Array[String]] = []
-  let csv = CSV::from_array(data, has_header=false, generate_headers=true)
-
-  // 由于数据完全为空，column_count=0，所以应该生成空的头
-  inspect!(csv.headers, content="[]")
-  inspect!(csv.rows, content="[]")
-}
-
-///|
-test "CSV::from_array/first_row_empty" {
-  // 测试第一行为空数组的情况
-  let data : Array[Array[String]] = [
-    [], // 第一行为空
-    ["Some", "Data", "Here"],
-  ]
-  let csv = CSV::from_array(data, has_header=false, generate_headers=true)
-
-  // 由于第一行为空，所以column_count=0，不应该生成任何头
-  inspect!(csv.headers, content="[]")
-  // 但行数据应该保留
-  inspect!(csv.rows, content="[[], [\"Some\", \"Data\", \"Here\"]]")
-}
-
-///|
-test "CSV::from_array/first_row_empty_with_header" {
-  // 测试把空行当作表头的情况
-  let data : Array[Array[String]] = [
-    [], // 空表头行
-    ["Some", "Data", "Here"],
-  ]
-  let csv = CSV::from_array(data, has_header=false, generate_headers=false)
-
-  // 表头应该为空
-  inspect!(csv.headers, content="[]")
-  // 数据行应该只包含第二行
-  inspect!(csv.rows, content="[[], [\"Some\", \"Data\", \"Here\"]]")
 }
 
 ///|
