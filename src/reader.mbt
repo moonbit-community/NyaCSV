@@ -14,7 +14,7 @@
 /// * `trim_spaces` : Boolean flag indicating whether leading and trailing
 /// whitespace should be removed from fields.
 ///
-pub struct CSVOptions {
+pub(all) struct CSVOptions {
   delimiter : Char
   allow_newlines_in_quotes : Bool
   quote_char : Char
