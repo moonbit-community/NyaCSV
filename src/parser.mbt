@@ -129,7 +129,7 @@ test "CSV::parse_string/carriage_return_in_quotes_not_allowed" {
     allow_newlines_in_quotes: false,
     quote_char: '"',
     skip_empty_lines: true,
-    trim_spaces: false,
+    trim_spaces: true,
   })
   
   // 验证引号在遇到\r时被强制结束，并创建了新行

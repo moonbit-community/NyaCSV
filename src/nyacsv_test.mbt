@@ -245,3 +245,35 @@ test "CSV::parse_string/custom_delimiter" {
   // 验证自定义分隔符正确工作
   assert_eq!(csv.data()[0][2], "120 any st., Anytown")
 }
+///| Test for empty bytes input.
+test "@nyacsv.CSV::parse_bytes/empty_bytes" {
+  let data = Bytes::new(0) // Create an empty byte sequence.
+  let csv = @NyaCSV.CSV::parse_bytes(data) // Call the `parse_bytes` function with empty data.
+  // Check if the parsed CSV has no headers and no data rows.
+  inspect!(csv.header(), content="[]")
+  inspect!(csv.data(), content="[]")
+}
+
+///| Test for a single line of data with no header.
+test "@nyacsv.CSV::parse_bytes/single_line_no_header" {
+  // Create a byte sequence representing a single line of data values separated by commas.
+  let data = Bytes::of_string("value1,value2,value3")
+  // Call the `parse_bytes` function with no header present in the data.
+  let csv = @NyaCSV.CSV::parse_bytes(data, options={
+    delimiter: ',',
+    allow_newlines_in_quotes: true,
+    quote_char: '"',
+    skip_empty_lines: true,
+    trim_spaces: true,
+  })
+
+  // Check if the parsed CSV has expected data values with an implicit header.
+  inspect!(csv.header(), content="[\"value1\", \"value2\", \"value3\"]")
+}
+
+///| Test for corrupted UTF-8 input.
+test "panic @nyacsv.CSV::parse_bytes/corrupted_utf8" {
+  // Create a byte sequence representing corrupted UTF-8 encoded data.
+  let data = Bytes::from_array([0xE2, 0x82, 0x28])
+  ignore(@NyaCSV.CSV::parse_bytes(data)) // Call the `parse_bytes` function and expect it to panic due to invalid UTF-8 input.
+}

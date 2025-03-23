@@ -254,6 +254,15 @@ pub fn CSV::parse_string(
 }
 
 ///|
+test "CSV::parse_buffer/basic" {
+  let buffer = @buffer.new()
+  buffer.write_string("header1,header2\nvalue1,value2")
+  let csv = CSV::parse_buffer(buffer)
+  inspect!(csv.header(), content="[\"header1\", \"header2\"]")
+  inspect!(csv.data(), content="[[\"value1\", \"value2\"]]")
+}
+
+///|
 /// Parses a buffer containing CSV data into a structured CSV object.
 ///
 /// Parameters:
@@ -317,4 +326,12 @@ pub fn CSV::parse_bytes(
 ) -> CSV {
   let reader : BytesReader = { source: data, pos: 0 }
   CSV::from_array(parse(reader, options~))
+}
+
+///|
+test "CSV::parse_bytes/basic_csv" {
+  let data = Bytes::of_string("header1,header2\nvalue1,value2")
+  let csv = CSV::parse_bytes(data)
+  inspect!(csv.header(), content="[\"header1\", \"header2\"]")
+  inspect!(csv.data(), content="[[\"value1\", \"value2\"]]")
 }
