@@ -368,6 +368,7 @@ impl CSVReader for BytesReader with read_char(self) -> Char? {
   let ch = Char::from_int(first_code)
   self.pos += 2
   return Some(ch)
+<<<<<<< HEAD
 }
 
 ///|
@@ -396,6 +397,8 @@ test "BytesReader::read_char/incomplete_surrogate" {
   let reader : BytesReader = { source: buffer.contents(), pos: 0 }
   inspect!(reader.read_char(), content="Some('�')")
   inspect!(reader.read_char(), content="None")
+=======
+>>>>>>> 9bc7c8689a1a0e2e99ab932cf603abc7bbacb399
 }
 
 ///|
@@ -427,6 +430,7 @@ impl CSVReader for BytesReader with peek_char(self) -> Char? {
   }
   let ch = Char::from_int(first_code)
   return Some(ch)
+<<<<<<< HEAD
 }
 
 ///|
@@ -460,6 +464,8 @@ test "BytesReader::peek_char/incomplete_surrogate" {
   inspect!(reader.peek_char(), content="Some('�')")
   reader.pos = 1
   inspect!(reader.peek_char(), content="None")
+=======
+>>>>>>> 9bc7c8689a1a0e2e99ab932cf603abc7bbacb399
 }
 
 ///|

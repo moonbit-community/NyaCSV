@@ -1,5 +1,7 @@
 target/
+.vscode/
 .mooncakes/
+.vscode/
 .DS_Store
 _coverage/
 Makefile

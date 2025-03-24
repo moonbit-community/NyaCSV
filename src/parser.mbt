@@ -21,10 +21,10 @@ fn parse[T : CSVReader](
       if reader.peek_char() == Some('\n') {
         if in_quotes && options.allow_newlines_in_quotes {
           // 在引号内，需要同时处理 \r 和 \n
-          field.write_char(ch)  // 写入 \r
-          reader.read_char() |> ignore  // 消费 \n
-          field.write_char('\n')  // 写入 \n
-          continue  // 继续下一轮循环
+          field.write_char(ch) // 写入 \r
+          reader.read_char() |> ignore // 消费 \n
+          field.write_char('\n') // 写入 \n
+          continue // 继续下一轮循环
         } else {
           // 不在引号内，跳过 \r，之后将处理 \n
           continue
@@ -118,6 +118,36 @@ fn parse[T : CSVReader](
     }
   }
   rows
+}
+
+///|
+test "CSV::parse_string/carriage_return_in_quotes_not_allowed" {
+  // 测试当不允许引号内换行时，引号内的\r会被视为换行并结束引号状态
+  let data = "a,b,c\n1,\"line\rwith\rCRs\",3"
+  let csv = CSV::parse_string(data, options={
+    delimiter: ',',
+    allow_newlines_in_quotes: false,
+    quote_char: '"',
+    skip_empty_lines: true,
+    trim_spaces: true,
+  })
+  
+  // 验证引号在遇到\r时被强制结束，并创建了新行
+  inspect!(csv.rows.length(), content="3") // 应该分成多行
+  assert_eq!(csv.rows[0][1], "line")
+  // 后面的行会因为强制结束引号而成为新行的一部分
+}
+
+///|
+test "CSV::parse_string/carriage_return_in_quotes" {
+  // 测试引号内的\r在允许引号内换行的情况下被保留
+  let data = "a,b,c\n1,\"line\rwith\rCRs\",3 "
+  let csv = CSV::parse_string(data)
+  inspect!(csv.headers, content="[\"a\", \"b\", \"c\"]")
+  
+  // 验证引号内的\r被正确保留
+  assert_eq!(csv.rows[0][1], "line\rwith\rCRs")
+  // 123
 }
 
 /// "first,last,address,city,zip\nJohn,Doe,120 any st.,\"Anytown, WW\",08123"
