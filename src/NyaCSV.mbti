@@ -7,12 +7,17 @@ alias @moonbitlang/core/buffer as @buffer
 // Types and methods
 type CSV
 impl CSV {
+  data(Self) -> Array[Array[String]]
+  from_array(Array[Array[String]], has_header~ : Bool = .., generate_headers~ : Bool = ..) -> Self
+  header(Self) -> Array[String]
   new() -> Self
   parse_buffer(@buffer.T, options~ : CSVOptions = ..) -> Self
+  parse_bytes(Bytes, options~ : CSVOptions = ..) -> Self
   parse_string(String, options~ : CSVOptions = ..) -> Self
 }
+impl Show for CSV
 
-pub struct CSVOptions {
+pub(all) struct CSVOptions {
   delimiter : Char
   allow_newlines_in_quotes : Bool
   quote_char : Char

@@ -131,7 +131,7 @@ test "CSV::parse_string/carriage_return_in_quotes_not_allowed" {
     skip_empty_lines: true,
     trim_spaces: true,
   })
-  
+
   // 验证引号在遇到\r时被强制结束，并创建了新行
   inspect!(csv.rows.length(), content="3") // 应该分成多行
   assert_eq!(csv.rows[0][1], "line")
@@ -144,7 +144,7 @@ test "CSV::parse_string/carriage_return_in_quotes" {
   let data = "a,b,c\n1,\"line\rwith\rCRs\",3 "
   let csv = CSV::parse_string(data)
   inspect!(csv.headers, content="[\"a\", \"b\", \"c\"]")
-  
+
   // 验证引号内的\r被正确保留
   assert_eq!(csv.rows[0][1], "line\rwith\rCRs")
   // 123
