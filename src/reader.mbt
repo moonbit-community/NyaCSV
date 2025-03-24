@@ -344,28 +344,30 @@ impl CSVReader for BytesReader with read_char(self) -> Char? {
   if self.pos + 1 >= self.source.length() {
     return None
   }
-  let first_unit = self.source.to_unchecked_string(offset=self.pos, length=2)[0]
-  let first_code = first_unit.to_int()
+  let first_byte = self.source[self.pos]
+  let second_byte = self.source[self.pos + 1]
+  let first_code = (second_byte.to_int() << 8) | first_byte.to_int()
   if first_code >= 0xD800 && first_code <= 0xDBFF {
     if self.pos + 3 >= self.source.length() {
       self.pos += 2
       return Some('�')
     }
-    let second_unit = self.source.to_unchecked_string(
-        offset=self.pos + 2,
-        length=2,
-      )[0]
-    let second_code = second_unit.to_int()
+    let third_byte = self.source[self.pos + 2]
+    let fourth_byte = self.source[self.pos + 3]
+    let second_code = (fourth_byte.to_int() << 8) | third_byte.to_int()
     if second_code >= 0xDC00 && second_code <= 0xDFFF {
-      let code = self.source.to_unchecked_string(offset=self.pos, length=4)[0]
+      let code_point = (0x10000 + ((first_code - 0xD800) << 10)) |
+        (second_code - 0xDC00)
+      let ch = Char::from_int(code_point)
       self.pos += 4
-      return Some(code)
+      return Some(ch)
     }
     self.pos += 2
     return Some('�')
   }
+  let ch = Char::from_int(first_code)
   self.pos += 2
-  return Some(first_unit)
+  return Some(ch)
 }
 
 ///|
@@ -377,21 +379,26 @@ impl CSVReader for BytesReader with peek_char(self) -> Char? {
   if pos + 1 >= self.source.length() {
     return None
   }
-  let first_unit = self.source.to_unchecked_string(offset=pos, length=2)[0]
-  let first_code = first_unit.to_int()
+  let first_byte = self.source[pos]
+  let second_byte = self.source[pos + 1]
+  let first_code = (second_byte.to_int() << 8) | first_byte.to_int()
   if first_code >= 0xD800 && first_code <= 0xDBFF {
     if pos + 3 >= self.source.length() {
       return Some('�')
     }
-    let second_unit = self.source.to_unchecked_string(offset=pos + 2, length=2)[0]
-    let second_code = second_unit.to_int()
+    let third_byte = self.source[pos + 2]
+    let fourth_byte = self.source[pos + 3]
+    let second_code = (fourth_byte.to_int() << 8) | third_byte.to_int()
     if second_code >= 0xDC00 && second_code <= 0xDFFF {
-      let code = self.source.to_unchecked_string(offset=pos, length=4)[0]
-      return Some(code)
+      let code_point = (0x10000 + ((first_code - 0xD800) << 10)) |
+        (second_code - 0xDC00)
+      let ch = Char::from_int(code_point)
+      return Some(ch)
     }
     return Some('�')
   }
-  return Some(first_unit)
+  let ch = Char::from_int(first_code)
+  return Some(ch)
 }
 
 ///|
