@@ -371,6 +371,34 @@ impl CSVReader for BytesReader with read_char(self) -> Char? {
 }
 
 ///|
+test "BytesReader::read_char/basic_ascii" {
+  let bytes = Bytes::of_string("AB")
+  let reader : BytesReader = { source: bytes, pos: 0 }
+  inspect!(reader.read_char(), content="Some('A')")
+  inspect!(reader.read_char(), content="Some('B')")
+  inspect!(reader.read_char(), content="None")
+}
+
+///|
+test "BytesReader::read_char/surrogate_pair" {
+  let bytes = Bytes::of_string("🌟") // Valid surrogate pair
+  let reader : BytesReader = { source: bytes, pos: 0 }
+  inspect!(reader.read_char(), content="Some('🌟')")
+  inspect!(reader.read_char(), content="None")
+}
+
+///|
+test "BytesReader::read_char/incomplete_surrogate" {
+  // Create bytes with only high surrogate (0xD83D without low surrogate)
+  let buffer = @buffer.new()
+  buffer.write_byte(0x3D)
+  buffer.write_byte(0xD8)
+  let reader : BytesReader = { source: buffer.contents(), pos: 0 }
+  inspect!(reader.read_char(), content="Some('�')")
+  inspect!(reader.read_char(), content="None")
+}
+
+///|
 impl CSVReader for BytesReader with peek_char(self) -> Char? {
   let pos = self.pos
   if pos >= self.source.length() {
@@ -399,6 +427,39 @@ impl CSVReader for BytesReader with peek_char(self) -> Char? {
   }
   let ch = Char::from_int(first_code)
   return Some(ch)
+}
+
+///|
+test "BytesReader::peek_char/normal_case" {
+  let bytes = Bytes::of_string("Hello")
+  let reader : BytesReader = { source: bytes, pos: 0 }
+  inspect!(reader.peek_char(), content="Some('H')")
+}
+
+///|
+test "BytesReader::peek_char/surrogate_pair" {
+  let bytes = Bytes::of_string("🌟") // Valid surrogate pair
+  let reader : BytesReader = { source: bytes, pos: 0 }
+  inspect!(reader.peek_char(), content="Some('🌟')")
+}
+
+///|
+test "BytesReader::peek_char/empty_source" {
+  let bytes = Bytes::new(0)
+  let reader : BytesReader = { source: bytes, pos: 0 }
+  inspect!(reader.peek_char(), content="None")
+}
+
+///|
+test "BytesReader::peek_char/incomplete_surrogate" {
+  // Create bytes with only high surrogate (0xD83D without low surrogate)
+  let buffer = @buffer.new()
+  buffer.write_byte(0x3D)
+  buffer.write_byte(0xD8)
+  let reader : BytesReader = { source: buffer.contents(), pos: 0 }
+  inspect!(reader.peek_char(), content="Some('�')")
+  reader.pos = 1
+  inspect!(reader.peek_char(), content="None")
 }
 
 ///|
