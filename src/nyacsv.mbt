@@ -23,6 +23,13 @@ pub fn CSV::data(self : CSV) -> Array[Array[String]] {
   self.rows
 }
 
+///| shape of the CSV.
+pub fn CSV::shape(self : CSV) -> (Int, Int) {
+  let row_count = self.rows.length()
+  let column_count = if row_count > 0 { self.rows[0].length() } else { 0 }
+  (row_count, column_count)
+}
+
 ///|
 pub impl Show for CSV with output(self, logger) -> Unit {
   if self.headers.is_empty() {
