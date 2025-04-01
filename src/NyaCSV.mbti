@@ -1,6 +1,8 @@
-package xunyoyo/NyaCSV
+package "xunyoyo/NyaCSV"
 
-alias @moonbitlang/core/buffer as @buffer
+import(
+  "moonbitlang/core/buffer"
+)
 
 // Values
 
