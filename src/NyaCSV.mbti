@@ -16,6 +16,7 @@ impl CSV {
   parse_buffer(@buffer.T, options~ : CSVOptions = ..) -> Self
   parse_bytes(Bytes, options~ : CSVOptions = ..) -> Self
   parse_string(String, options~ : CSVOptions = ..) -> Self
+  shape(Self) -> (Int, Int)
 }
 impl Show for CSV
 

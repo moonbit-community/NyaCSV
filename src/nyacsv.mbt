@@ -30,7 +30,8 @@ pub fn CSV::shape(self : CSV) -> (Int, Int) {
   (row_count, column_count)
 }
 
-fn draw_border(logger : &Logger, column_widths: Array[Int]) -> Unit {
+///|
+fn draw_border(logger : &Logger, column_widths : Array[Int]) -> Unit {
   logger.write_string("+")
   for width in column_widths {
     logger.write_string("-".repeat(width + 2))
@@ -143,17 +144,16 @@ test "CSV::output/row_with_missing_fields" {
 ///|
 pub impl Show for CSV with to_string(self) -> String {
   let result = StringBuilder::new()
-  
+
   // 添加表头
   result.write_string(self.headers.join(","))
   result.write_char('\n')
-  
+
   // 添加数据行
   for row in self.rows {
     result.write_string(row.join(","))
     result.write_char('\n')
   }
-  
   result.to_string()
 }
 
@@ -282,7 +282,10 @@ pub fn CSV::parse_buffer(
     trim_spaces: false,
   }
 ) -> CSV {
-  let reader : StringReader = { source : data.contents().to_unchecked_string(), pos: 0 }
+  let reader : StringReader = {
+    source: data.contents().to_unchecked_string(),
+    pos: 0,
+  }
   CSV::from_array(parse(reader, options~))
 }
 
