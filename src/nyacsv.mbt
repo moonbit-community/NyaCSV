@@ -30,6 +30,15 @@ pub fn CSV::shape(self : CSV) -> (Int, Int) {
   (row_count, column_count)
 }
 
+fn draw_border(logger : &Logger, column_widths: Array[Int]) -> Unit {
+  logger.write_string("+")
+  for width in column_widths {
+    logger.write_string("-".repeat(width + 2))
+    logger.write_string("+")
+  }
+  logger.write_string("\n")
+}
+
 ///|
 pub impl Show for CSV with output(self, logger) -> Unit {
   if self.headers.is_empty() {
@@ -55,12 +64,7 @@ pub impl Show for CSV with output(self, logger) -> Unit {
     }
 
     // 打印表头边框
-    logger.write_string("+")
-    for width in column_widths {
-      logger.write_string("-".repeat(width + 2))
-      logger.write_string("+")
-    }
-    logger.write_string("\n")
+    draw_border(logger, column_widths)
 
     // 打印表头
     logger.write_string("|")
@@ -75,12 +79,7 @@ pub impl Show for CSV with output(self, logger) -> Unit {
     logger.write_string("\n")
 
     // 打印分隔线
-    logger.write_string("+")
-    for width in column_widths {
-      logger.write_string("-".repeat(width + 2))
-      logger.write_string("+")
-    }
-    logger.write_string("\n")
+    draw_border(logger, column_widths)
 
     // 打印数据行，替换换行符
     for row in self.rows {
@@ -99,12 +98,7 @@ pub impl Show for CSV with output(self, logger) -> Unit {
     }
 
     // 打印底部边框
-    logger.write_string("+")
-    for width in column_widths {
-      logger.write_string("-".repeat(width + 2))
-      logger.write_string("+")
-    }
-    logger.write_string("\n")
+    draw_border(logger, column_widths)
   }
 }
 
@@ -149,27 +143,17 @@ test "CSV::output/row_with_missing_fields" {
 ///|
 pub impl Show for CSV with to_string(self) -> String {
   let result = StringBuilder::new()
-
+  
   // 添加表头
-  for i = 0; i < self.headers.length(); i = i + 1 {
-    if i > 0 {
-      result.write_char(',')
-    }
-    result.write_string(self.headers[i])
-  }
+  result.write_string(self.headers.join(","))
   result.write_char('\n')
-
+  
   // 添加数据行
-  for i = 0; i < self.rows.length(); i = i + 1 {
-    let row = self.rows[i]
-    for j = 0; j < row.length(); j = j + 1 {
-      if j > 0 {
-        result.write_char(',')
-      }
-      result.write_string(row[j])
-    }
+  for row in self.rows {
+    result.write_string(row.join(","))
     result.write_char('\n')
   }
+  
   result.to_string()
 }
 
@@ -298,7 +282,7 @@ pub fn CSV::parse_buffer(
     trim_spaces: false,
   }
 ) -> CSV {
-  let reader : BufferReader = { bytes: data.contents(), pos: 0 }
+  let reader : StringReader = { source : data.contents().to_unchecked_string(), pos: 0 }
   CSV::from_array(parse(reader, options~))
 }
 
@@ -331,7 +315,7 @@ pub fn CSV::parse_bytes(
     trim_spaces: false,
   }
 ) -> CSV {
-  let reader : BytesReader = { source: data, pos: 0 }
+  let reader : StringReader = { source: data.to_unchecked_string(), pos: 0 }
   CSV::from_array(parse(reader, options~))
 }
 

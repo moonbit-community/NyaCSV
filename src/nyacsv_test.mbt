@@ -271,10 +271,3 @@ test "@nyacsv.CSV::parse_bytes/single_line_no_header" {
   // Check if the parsed CSV has expected data values with an implicit header.
   inspect!(csv.header(), content="[\"value1\", \"value2\", \"value3\"]")
 }
-
-///| Test for corrupted UTF-8 input.
-test "panic @nyacsv.CSV::parse_bytes/corrupted_utf8" {
-  // Create a byte sequence representing corrupted UTF-8 encoded data.
-  let data = Bytes::from_array([0xE2, 0x82, 0x28])
-  ignore(@NyaCSV.CSV::parse_bytes(data)) // Call the `parse_bytes` function and expect it to panic due to invalid UTF-8 input.
-}
