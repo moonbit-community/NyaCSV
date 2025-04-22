@@ -79,7 +79,15 @@ fn parse[T : CSVReader](
     } else if ch == options.delimiter {
       // 遇到分隔符，当前字段结束
       if options.trim_spaces {
-        row.push(field.to_string().trim("\n").trim("\r").trim("\t").trim(" "))
+        row.push(
+          field
+          .to_string()
+          .trim("\n")
+          .trim("\r")
+          .trim("\t")
+          .trim(" ")
+          .to_string(),
+        )
       } else {
         row.push(field.to_string())
       }
@@ -87,7 +95,15 @@ fn parse[T : CSVReader](
     } else if ch == '\n' {
       // 遇到换行且不在引号内，当前记录结束
       if options.trim_spaces {
-        row.push(field.to_string().trim("\n").trim("\r").trim("\t").trim(" "))
+        row.push(
+          field
+          .to_string()
+          .trim("\n")
+          .trim("\r")
+          .trim("\t")
+          .trim(" ")
+          .to_string(),
+        )
       } else {
         row.push(field.to_string())
       }
@@ -109,7 +125,9 @@ fn parse[T : CSVReader](
   // 循环结束后，加入最后的字段和行（如果有）
   if not(field.is_empty()) || row.length() > 0 {
     if options.trim_spaces {
-      row.push(field.to_string().trim("\n").trim("\r").trim("\t").trim(" "))
+      row.push(
+        field.to_string().trim("\n").trim("\r").trim("\t").trim(" ").to_string(),
+      )
     } else {
       row.push(field.to_string())
     }
