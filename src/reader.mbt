@@ -38,7 +38,7 @@ priv struct StringReader {
 ///|
 impl CSVReader for StringReader with read_char(self) -> Char? {
   if self.pos < self.source.length() {
-    let ch = self.source[self.pos]
+    let ch = Int::unsafe_to_char(self.source[self.pos])
     self.pos += 1
     Some(ch)
   } else {
@@ -69,7 +69,7 @@ test "StringReader::read_char/past_end_of_string" {
 ///|
 impl CSVReader for StringReader with peek_char(self) -> Char? {
   if self.pos < self.source.length() {
-    Some(self.source[self.pos])
+    Some(Int::unsafe_to_char(self.source[self.pos]))
   } else {
     None
   }

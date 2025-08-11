@@ -1,3 +1,4 @@
+// Generated using `moon info`, DON'T EDIT IT
 package "xunyoyo/NyaCSV"
 
 import(
@@ -6,18 +7,18 @@ import(
 
 // Values
 
+// Errors
+
 // Types and methods
 type CSV
-impl CSV {
-  data(Self) -> Array[Array[String]]
-  from_array(Array[Array[String]], has_header~ : Bool = .., generate_headers~ : Bool = ..) -> Self
-  header(Self) -> Array[String]
-  new() -> Self
-  parse_buffer(@buffer.T, options~ : CSVOptions = ..) -> Self
-  parse_bytes(Bytes, options~ : CSVOptions = ..) -> Self
-  parse_string(String, options~ : CSVOptions = ..) -> Self
-  shape(Self) -> (Int, Int)
-}
+fn CSV::data(Self) -> Array[Array[String]]
+fn CSV::from_array(Array[Array[String]], has_header? : Bool, generate_headers? : Bool) -> Self
+fn CSV::header(Self) -> Array[String]
+fn CSV::new() -> Self
+fn CSV::parse_buffer(@buffer.T, options? : CSVOptions) -> Self
+fn CSV::parse_bytes(Bytes, options? : CSVOptions) -> Self
+fn CSV::parse_string(String, options? : CSVOptions) -> Self
+fn CSV::shape(Self) -> (Int, Int)
 impl Show for CSV
 
 pub(all) struct CSVOptions {

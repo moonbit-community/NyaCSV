@@ -246,7 +246,7 @@ test "@nyacsv.CSV::parse_bytes/empty_bytes" {
 ///| Test for a single line of data with no header.
 test "@nyacsv.CSV::parse_bytes/single_line_no_header" {
   // Create a byte sequence representing a single line of data values separated by commas.
-  let data = Bytes::of_string("value1,value2,value3")
+  let data = "value1,value2,value3".to_bytes()
   // Call the `parse_bytes` function with no header present in the data.
   let csv = @NyaCSV.CSV::parse_bytes(data, options={
     delimiter: ',',
