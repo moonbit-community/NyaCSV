@@ -54,10 +54,10 @@ pub impl Show for CSV with output(self, logger) -> Unit {
 
     // 计算所有行的最大宽度，并替换换行符
     for row in self.rows {
-      for i in 0..<@math.minimum(row.length(), self.headers.length()) {
+      for i in 0..<@cmp.minimum(row.length(), self.headers.length()) {
         // 处理字段中的换行符，计算适当的宽度
         let processed_value = row[i].replace(old="\n", new="\\n")
-        column_widths[i] = @math.maximum(
+        column_widths[i] = @cmp.maximum(
           column_widths[i],
           processed_value.length(),
         )
@@ -118,7 +118,7 @@ test "CSV::output/single_row_no_newline" {
     #|| Alice | 30  | Wonderland |
     #|+-------+-----+------------+
     #|
-  inspect!(logger.contents().to_unchecked_string(), content=expected)
+  inspect(logger.contents().to_unchecked_string(), content=expected)
 }
 
 ///|
@@ -138,7 +138,7 @@ test "CSV::output/row_with_missing_fields" {
     #|| Bob   | 25  |            |         |
     #|+-------+-----+------------+---------+
     #|
-  inspect!(logger.contents().to_unchecked_string(), content=expected)
+  inspect(logger.contents().to_unchecked_string(), content=expected)
 }
 
 ///|
@@ -160,7 +160,7 @@ pub impl Show for CSV with to_string(self) -> String {
 ///|
 test "CSV::to_string/single_header_no_rows" {
   let csv = { headers: ["Name"], rows: [] }
-  inspect!(csv.to_string(), content="Name\n")
+  inspect(csv.to_string(), content="Name\n")
 }
 
 ///|
@@ -174,7 +174,7 @@ test "CSV::to_string/headers_and_rows" {
     #|John,25,New York
     #|Jane,30,San Francisco
     #|
-  inspect!(csv.to_string(), content=expected)
+  inspect(csv.to_string(), content=expected)
 }
 
 ///|
@@ -192,7 +192,7 @@ pub fn CSV::new() -> CSV {
 pub fn CSV::from_array(
   data : Array[Array[String]],
   has_header~ : Bool = true,
-  generate_headers~ : Bool = true
+  generate_headers~ : Bool = true,
 ) -> CSV {
   if data.is_empty() {
     CSV::new()
@@ -238,7 +238,7 @@ pub fn CSV::parse_string(
     quote_char: '"',
     skip_empty_lines: true,
     trim_spaces: false,
-  }
+  },
 ) -> CSV {
   let reader : StringReader = { source: data, pos: 0 }
   CSV::from_array(parse(reader, options~))
@@ -249,8 +249,8 @@ test "CSV::parse_buffer/basic" {
   let buffer = @buffer.new()
   buffer.write_string("header1,header2\nvalue1,value2")
   let csv = CSV::parse_buffer(buffer)
-  inspect!(csv.header(), content="[\"header1\", \"header2\"]")
-  inspect!(csv.data(), content="[[\"value1\", \"value2\"]]")
+  inspect(csv.header(), content="[\"header1\", \"header2\"]")
+  inspect(csv.data(), content="[[\"value1\", \"value2\"]]")
 }
 
 ///|
@@ -280,7 +280,7 @@ pub fn CSV::parse_buffer(
     quote_char: '"',
     skip_empty_lines: true,
     trim_spaces: false,
-  }
+  },
 ) -> CSV {
   let reader : StringReader = {
     source: data.contents().to_unchecked_string(),
@@ -316,7 +316,7 @@ pub fn CSV::parse_bytes(
     quote_char: '"',
     skip_empty_lines: true,
     trim_spaces: false,
-  }
+  },
 ) -> CSV {
   let reader : StringReader = { source: data.to_unchecked_string(), pos: 0 }
   CSV::from_array(parse(reader, options~))
@@ -324,8 +324,8 @@ pub fn CSV::parse_bytes(
 
 ///|
 test "CSV::parse_bytes/basic_csv" {
-  let data = Bytes::of_string("header1,header2\nvalue1,value2")
+  let data = "header1,header2\nvalue1,value2".to_bytes()
   let csv = CSV::parse_bytes(data)
-  inspect!(csv.header(), content="[\"header1\", \"header2\"]")
-  inspect!(csv.data(), content="[[\"value1\", \"value2\"]]")
+  inspect(csv.header(), content="[\"header1\", \"header2\"]")
+  inspect(csv.data(), content="[[\"value1\", \"value2\"]]")
 }

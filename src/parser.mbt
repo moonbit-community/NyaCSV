@@ -1,5 +1,5 @@
 ///|
-fn parse[T : CSVReader](
+fn[T : CSVReader] parse(
   reader : T,
   options~ : CSVOptions = {
     delimiter: ',',
@@ -7,7 +7,7 @@ fn parse[T : CSVReader](
     quote_char: '"',
     skip_empty_lines: true,
     trim_spaces: false,
-  }
+  },
 ) -> Array[Array[String]] {
   let rows : Array[Array[String]] = Array::new()
   let mut row = Array::make(0, "")
@@ -151,8 +151,8 @@ test "CSV::parse_string/carriage_return_in_quotes_not_allowed" {
   })
 
   // 验证引号在遇到\r时被强制结束，并创建了新行
-  inspect!(csv.rows.length(), content="3") // 应该分成多行
-  assert_eq!(csv.rows[0][1], "line")
+  inspect(csv.rows.length(), content="3") // 应该分成多行
+  assert_eq(csv.rows[0][1], "line")
   // 后面的行会因为强制结束引号而成为新行的一部分
 }
 
@@ -161,10 +161,10 @@ test "CSV::parse_string/carriage_return_in_quotes" {
   // 测试引号内的\r在允许引号内换行的情况下被保留
   let data = "a,b,c\n1,\"line\rwith\rCRs\",3 "
   let csv = CSV::parse_string(data)
-  inspect!(csv.headers, content="[\"a\", \"b\", \"c\"]")
+  inspect(csv.headers, content="[\"a\", \"b\", \"c\"]")
 
   // 验证引号内的\r被正确保留
-  assert_eq!(csv.rows[0][1], "line\rwith\rCRs")
+  assert_eq(csv.rows[0][1], "line\rwith\rCRs")
   // 123
 }
 

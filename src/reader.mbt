@@ -38,7 +38,7 @@ priv struct StringReader {
 ///|
 impl CSVReader for StringReader with read_char(self) -> Char? {
   if self.pos < self.source.length() {
-    let ch = self.source[self.pos]
+    let ch = Int::unsafe_to_char(self.source[self.pos])
     self.pos += 1
     Some(ch)
   } else {
@@ -49,27 +49,27 @@ impl CSVReader for StringReader with read_char(self) -> Char? {
 ///|
 test "StringReader::read_char/normal_case" {
   let reader : StringReader = { source: "Hello, World!", pos: 0 }
-  inspect!(reader.read_char(), content="Some('H')")
-  inspect!(reader.read_char(), content="Some('e')")
-  inspect!(reader.read_char(), content="Some('l')")
+  inspect(reader.read_char(), content="Some('H')")
+  inspect(reader.read_char(), content="Some('e')")
+  inspect(reader.read_char(), content="Some('l')")
 }
 
 ///|
 test "StringReader::read_char/empty_string" {
   let reader : StringReader = { source: "", pos: 0 }
-  inspect!(reader.read_char(), content="None")
+  inspect(reader.read_char(), content="None")
 }
 
 ///|
 test "StringReader::read_char/past_end_of_string" {
   let reader : StringReader = { source: "Hello", pos: 5 } // 'pos' is set to the length of the string
-  inspect!(reader.read_char(), content="None")
+  inspect(reader.read_char(), content="None")
 }
 
 ///|
 impl CSVReader for StringReader with peek_char(self) -> Char? {
   if self.pos < self.source.length() {
-    Some(self.source[self.pos])
+    Some(Int::unsafe_to_char(self.source[self.pos]))
   } else {
     None
   }
@@ -78,21 +78,21 @@ impl CSVReader for StringReader with peek_char(self) -> Char? {
 ///|
 test "StringReader::peek_char/normal_case" {
   let reader : StringReader = { source: "Hello, World!", pos: 0 }
-  inspect!(reader.peek_char(), content="Some('H')")
+  inspect(reader.peek_char(), content="Some('H')")
   reader.pos = 7
-  inspect!(reader.peek_char(), content="Some('W')")
+  inspect(reader.peek_char(), content="Some('W')")
 }
 
 ///|
 test "StringReader::peek_char/empty_string" {
   let reader : StringReader = { source: "", pos: 0 }
-  inspect!(reader.peek_char(), content="None")
+  inspect(reader.peek_char(), content="None")
 }
 
 ///|
 test "StringReader::peek_char/at_end_of_string" {
   let reader : StringReader = { source: "Hello", pos: 5 } // 'pos' is set to the length of the string
-  inspect!(reader.peek_char(), content="None")
+  inspect(reader.peek_char(), content="None")
 }
 
 ///|
