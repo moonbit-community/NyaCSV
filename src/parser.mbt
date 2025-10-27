@@ -82,10 +82,10 @@ fn[T : CSVReader] parse(
         row.push(
           field
           .to_string()
-          .trim("\n")
-          .trim("\r")
-          .trim("\t")
-          .trim(" ")
+          .trim(char_set="\n")
+          .trim(char_set="\r")
+          .trim(char_set="\t")
+          .trim(char_set=" ")
           .to_string(),
         )
       } else {
@@ -98,10 +98,10 @@ fn[T : CSVReader] parse(
         row.push(
           field
           .to_string()
-          .trim("\n")
-          .trim("\r")
-          .trim("\t")
-          .trim(" ")
+          .trim(char_set="\n")
+          .trim(char_set="\r")
+          .trim(char_set="\t")
+          .trim(char_set=" ")
           .to_string(),
         )
       } else {
@@ -126,7 +126,7 @@ fn[T : CSVReader] parse(
   if not(field.is_empty()) || row.length() > 0 {
     if options.trim_spaces {
       row.push(
-        field.to_string().trim("\n").trim("\r").trim("\t").trim(" ").to_string(),
+        field.to_string().trim(char_set="\n").trim(char_set="\r").trim(char_set="\t").trim(char_set=" ").to_string(),
       )
     } else {
       row.push(field.to_string())
