@@ -273,7 +273,7 @@ test "CSV::parse_buffer/basic" {
 /// Returns a `CSV` object containing the parsed data, with headers from the
 /// first row and subsequent rows as data.
 pub fn CSV::parse_buffer(
-  data : @moonbitlang/core/buffer.T,
+  data : @buffer.Buffer,
   options~ : CSVOptions = {
     delimiter: ',',
     allow_newlines_in_quotes: true,
@@ -318,13 +318,14 @@ pub fn CSV::parse_bytes(
     trim_spaces: false,
   },
 ) -> CSV {
-  let reader : StringReader = { source: data.to_unchecked_string(), pos: 0 }
+  let source = @encoding/utf8.decode_lossy(data)
+  let reader : StringReader = { source, pos: 0 }
   CSV::from_array(parse(reader, options~))
 }
 
 ///|
 test "CSV::parse_bytes/basic_csv" {
-  let data = "header1,header2\nvalue1,value2".to_bytes()
+  let data = @encoding/utf8.encode("header1,header2\nvalue1,value2")
   let csv = CSV::parse_bytes(data)
   inspect(csv.header(), content="[\"header1\", \"header2\"]")
   inspect(csv.data(), content="[[\"value1\", \"value2\"]]")
