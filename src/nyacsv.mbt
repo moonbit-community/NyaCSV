@@ -318,7 +318,8 @@ pub fn CSV::parse_bytes(
     trim_spaces: false,
   },
 ) -> CSV {
-  let reader : StringReader = { source: data.to_unchecked_string(), pos: 0 }
+  let source = @encoding/utf8.decode_lossy(data)
+  let reader : StringReader = { source, pos: 0 }
   CSV::from_array(parse(reader, options~))
 }
 
