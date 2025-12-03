@@ -1,7 +1,7 @@
 ///|
 fn[T : CSVReader] parse(
   reader : T,
-  options~ : CSVOptions = {
+  options? : CSVOptions = {
     delimiter: ',',
     allow_newlines_in_quotes: true,
     quote_char: '"',
@@ -126,7 +126,13 @@ fn[T : CSVReader] parse(
   if not(field.is_empty()) || row.length() > 0 {
     if options.trim_spaces {
       row.push(
-        field.to_string().trim(char_set="\n").trim(char_set="\r").trim(char_set="\t").trim(char_set=" ").to_string(),
+        field
+        .to_string()
+        .trim(char_set="\n")
+        .trim(char_set="\r")
+        .trim(char_set="\t")
+        .trim(char_set=" ")
+        .to_string(),
       )
     } else {
       row.push(field.to_string())
