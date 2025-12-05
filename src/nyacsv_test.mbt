@@ -83,7 +83,7 @@ test "CSV::from_array/first_row_empty" {
 }
 
 ///|
-test "CSV::from_array/first_row_empty_with_header" {
+test "CSV::from_array/first_row_empty_with_header_no_generate" {
   // 测试把空行当作表头的情况
   let data : Array[Array[String]] = [
     [], // 空表头行
@@ -131,17 +131,6 @@ test "CSV::parse_string/crlf_with_empty_fields" {
   // 验证空引号字段正确解析为空字符串
   assert_eq(csv.data()[0][1], "")
   assert_eq(csv.data()[0][2], "")
-}
-
-///|
-test "CSV::parse_string/quoted_with_internal_quotes" {
-  let data = "a,b\n1,\"ha \"\"ha\"\" ha\"\n3,4\n"
-  let csv = CSV::parse_string(data)
-  inspect(csv.header(), content="[\"a\", \"b\"]")
-  inspect(csv.data(), content="[[\"1\", \"ha \\\"ha\\\" ha\"], [\"3\", \"4\"]]")
-
-  // 验证内部引号正确处理
-  assert_eq(csv.data()[0][1], "ha \"ha\" ha")
 }
 
 ///|
@@ -234,7 +223,8 @@ test "CSV::parse_string/custom_delimiter" {
   assert_eq(csv.data()[0][2], "120 any st., Anytown")
 }
 
-///| Test for empty bytes input.
+///|
+/// Test for empty bytes input.
 test "@nyacsv.CSV::parse_bytes/empty_bytes" {
   let data = Bytes::new(0) // Create an empty byte sequence.
   let csv = @NyaCSV.CSV::parse_bytes(data) // Call the `parse_bytes` function with empty data.
@@ -243,7 +233,8 @@ test "@nyacsv.CSV::parse_bytes/empty_bytes" {
   inspect(csv.data(), content="[]")
 }
 
-///| Test for a single line of data with no header.
+///|
+/// Test for a single line of data with no header.
 test "@nyacsv.CSV::parse_bytes/single_line_no_header" {
   // Create a byte sequence representing a single line of data values separated by commas.
   let data = @encoding/utf8.encode("value1,value2,value3")

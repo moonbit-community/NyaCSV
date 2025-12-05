@@ -13,17 +13,20 @@ struct CSV {
   rows : Array[Array[String]]
 }
 
-///| header of the CSV.
+///|
+/// header of the CSV.
 pub fn CSV::header(self : CSV) -> Array[String] {
   self.headers
 }
 
-///| data of the CSV.
+///|
+/// data of the CSV.
 pub fn CSV::data(self : CSV) -> Array[Array[String]] {
   self.rows
 }
 
-///| shape of the CSV.
+///|
+/// shape of the CSV.
 pub fn CSV::shape(self : CSV) -> (Int, Int) {
   let row_count = self.rows.length()
   let column_count = if row_count > 0 { self.rows[0].length() } else { 0 }
@@ -191,8 +194,8 @@ pub fn CSV::new() -> CSV {
 ///|
 pub fn CSV::from_array(
   data : Array[Array[String]],
-  has_header~ : Bool = true,
-  generate_headers~ : Bool = true,
+  has_header? : Bool = true,
+  generate_headers? : Bool = true,
 ) -> CSV {
   if data.is_empty() {
     CSV::new()
@@ -232,7 +235,7 @@ pub fn CSV::from_array(
 /// first row and subsequent rows as data.
 pub fn CSV::parse_string(
   data : String,
-  options~ : CSVOptions = {
+  options? : CSVOptions = {
     delimiter: ',',
     allow_newlines_in_quotes: true,
     quote_char: '"',
@@ -274,7 +277,7 @@ test "CSV::parse_buffer/basic" {
 /// first row and subsequent rows as data.
 pub fn CSV::parse_buffer(
   data : @buffer.Buffer,
-  options~ : CSVOptions = {
+  options? : CSVOptions = {
     delimiter: ',',
     allow_newlines_in_quotes: true,
     quote_char: '"',
@@ -310,7 +313,7 @@ pub fn CSV::parse_buffer(
 /// first row and subsequent rows as data.
 pub fn CSV::parse_bytes(
   data : Bytes,
-  options~ : CSVOptions = {
+  options? : CSVOptions = {
     delimiter: ',',
     allow_newlines_in_quotes: true,
     quote_char: '"',
