@@ -5,3 +5,6 @@ target/
 .DS_Store
 _coverage/
 Makefile
+
+_build/
+target
