@@ -13,7 +13,7 @@ fn[T : CSVReader] parse(
   let mut row = Array::make(0, "")
   let mut field = StringBuilder::new()
   let mut in_quotes = false
-  while not(reader.is_eof()) {
+  while !(reader.is_eof()) {
     let mut ch = reader.read_char().unwrap()
 
     // 处理 Windows 格式换行的 \r
@@ -41,7 +41,7 @@ fn[T : CSVReader] parse(
     if in_quotes {
       if ch == options.quote_char {
         // 遇到引号，看下一个字符以判断转义或结束
-        if not(reader.is_eof()) &&
+        if !(reader.is_eof()) &&
           reader.peek_char() == Some(options.quote_char) {
           // 连续两个引号，表示数据中的一个引号
           field.write_char(options.quote_char)
@@ -50,13 +50,13 @@ fn[T : CSVReader] parse(
           // 引号闭合，退出引号模式
           in_quotes = false
         }
-      } else if ch == '\n' && not(options.allow_newlines_in_quotes) {
+      } else if ch == '\n' && !(options.allow_newlines_in_quotes) {
         // 如果不允许引号内换行但遇到了换行，强制结束引号
         in_quotes = false
 
         // 处理当前行
         row.push(field.to_string())
-        if not(row.is_empty()) || not(options.skip_empty_lines) {
+        if !(row.is_empty()) || !(options.skip_empty_lines) {
           rows.push(row)
         }
 
@@ -93,7 +93,7 @@ fn[T : CSVReader] parse(
       }
 
       // 检查是否为有效行（非空或配置允许空行）
-      if not(row.is_empty()) || not(options.skip_empty_lines) {
+      if !(row.is_empty()) || !(options.skip_empty_lines) {
         rows.push(row)
       }
 
@@ -107,13 +107,13 @@ fn[T : CSVReader] parse(
   }
 
   // 循环结束后，加入最后的字段和行（如果有）
-  if not(field.is_empty()) || row.length() > 0 {
+  if !(field.is_empty()) || row.length() > 0 {
     if options.trim_spaces {
       row.push(field.to_string().trim(char_set="\n\r\t ").to_string())
     } else {
       row.push(field.to_string())
     }
-    if not(row.is_empty()) || not(options.skip_empty_lines) {
+    if !(row.is_empty()) || !(options.skip_empty_lines) {
       rows.push(row)
     }
   }
