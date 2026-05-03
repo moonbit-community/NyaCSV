@@ -233,6 +233,12 @@ test "CSV::parse_string/preserves_empty_quoted_field_at_eof" {
 }
 
 ///|
+test "CSV::shape/header_only_csv" {
+  let csv = CSV::parse_string("a,b\n")
+  inspect(csv.shape(), content="(0, 2)")
+}
+
+///|
 test "CSV::parse_string/unicode_characters" {
   let data =
     #|a,b,c

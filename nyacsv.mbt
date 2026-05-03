@@ -29,7 +29,13 @@ pub fn CSV::data(self : CSV) -> Array[Array[String]] {
 /// shape of the CSV.
 pub fn CSV::shape(self : CSV) -> (Int, Int) {
   let row_count = self.rows.length()
-  let column_count = if row_count > 0 { self.rows[0].length() } else { 0 }
+  let column_count = if self.headers.length() > 0 {
+    self.headers.length()
+  } else if row_count > 0 {
+    self.rows[0].length()
+  } else {
+    0
+  }
   (row_count, column_count)
 }
 
