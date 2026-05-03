@@ -1,4 +1,13 @@
 ///|
+fn field_to_string(field : StringBuilder, options : CSVOptions) -> String {
+  if options.trim_spaces {
+    field.to_string().trim(char_set="\n\r\t ").to_string()
+  } else {
+    field.to_string()
+  }
+}
+
+///|
 fn[T : CSVReader] parse(
   reader : T,
   options? : CSVOptions = {
@@ -13,6 +22,7 @@ fn[T : CSVReader] parse(
   let mut row = Array::make(0, "")
   let mut field = StringBuilder::new()
   let mut in_quotes = false
+  let mut record_has_content = false
   while !reader.is_eof() {
     let mut ch = reader.read_char().unwrap()
 
@@ -24,6 +34,7 @@ fn[T : CSVReader] parse(
           field.write_char(ch) // 写入 \r
           reader.read_char() |> ignore // 消费 \n
           field.write_char('\n') // 写入 \n
+          record_has_content = true
           continue // 继续下一轮循环
         } else {
           // 不在引号内，跳过 \r，之后将处理 \n
@@ -32,6 +43,7 @@ fn[T : CSVReader] parse(
       } else if options.allow_newlines_in_quotes && in_quotes {
         // 单独的 \r
         field.write_char(ch)
+        record_has_content = true
         continue
       } else {
         // 将单独的 \r 视为换行
@@ -45,6 +57,7 @@ fn[T : CSVReader] parse(
           // 连续两个引号，表示数据中的一个引号
           field.write_char(options.quote_char)
           reader.read_char() |> ignore // 跳过转义的第二个引号
+          record_has_content = true
         } else {
           // 引号闭合，退出引号模式
           in_quotes = false
@@ -54,17 +67,19 @@ fn[T : CSVReader] parse(
         in_quotes = false
 
         // 处理当前行
-        row.push(field.to_string())
-        if !row.is_empty() || !options.skip_empty_lines {
+        if record_has_content || !options.skip_empty_lines {
+          row.push(field_to_string(field, options))
           rows.push(row)
         }
 
         // 重置用于下一行
         row = Array::make(0, "")
         field = StringBuilder::new()
+        record_has_content = false
       } else {
         // 引号内普通字符，加入当前字段
         field.write_char(ch)
+        record_has_content = true
       }
     } else if ch == options.quote_char {
       // 遇到引号，进入引号模式（开始读取引用字段）
@@ -74,45 +89,36 @@ fn[T : CSVReader] parse(
       } else {
         // 字段非空时遇到引号，视为普通字符
         field.write_char(ch)
+        record_has_content = true
       }
     } else if ch == options.delimiter {
       // 遇到分隔符，当前字段结束
-      if options.trim_spaces {
-        row.push(field.to_string().trim(char_set="\n\r\t ").to_string())
-      } else {
-        row.push(field.to_string())
-      }
+      row.push(field_to_string(field, options))
       field = StringBuilder::new() // 创建新的字段构建器
+      record_has_content = true
     } else if ch == '\n' {
       // 遇到换行且不在引号内，当前记录结束
-      if options.trim_spaces {
-        row.push(field.to_string().trim(char_set="\n\r\t ").to_string())
-      } else {
-        row.push(field.to_string())
-      }
-
       // 检查是否为有效行（非空或配置允许空行）
-      if !row.is_empty() || !options.skip_empty_lines {
+      if record_has_content || !options.skip_empty_lines {
+        row.push(field_to_string(field, options))
         rows.push(row)
       }
 
       // 重置用于下一行
       row = Array::make(0, "")
       field = StringBuilder::new()
+      record_has_content = false
     } else {
       // 普通字符，累积到当前字段
       field.write_char(ch)
+      record_has_content = true
     }
   }
 
   // 循环结束后，加入最后的字段和行（如果有）
-  if !field.is_empty() || row.length() > 0 {
-    if options.trim_spaces {
-      row.push(field.to_string().trim(char_set="\n\r\t ").to_string())
-    } else {
-      row.push(field.to_string())
-    }
-    if !row.is_empty() || !options.skip_empty_lines {
+  if record_has_content || row.length() > 0 {
+    if record_has_content || !options.skip_empty_lines {
+      row.push(field_to_string(field, options))
       rows.push(row)
     }
   }

@@ -218,6 +218,14 @@ test "CSV::parse_string/simple_crlf" {
 }
 
 ///|
+test "CSV::parse_string/skips_empty_lines_by_default" {
+  let data = "\n\na,b\n\n1,2\r\n\r\n3,4"
+  let csv = CSV::parse_string(data)
+  inspect(csv.header(), content="[\"a\", \"b\"]")
+  inspect(csv.data(), content="[[\"1\", \"2\"], [\"3\", \"4\"]]")
+}
+
+///|
 test "CSV::parse_string/unicode_characters" {
   let data =
     #|a,b,c
