@@ -1,7 +1,7 @@
 ///|
 fn field_to_string(field : StringBuilder, options : CSVOptions) -> String {
   if options.trim_spaces {
-    field.to_string().trim(char_set="\n\r\t ").to_string()
+    field.to_string().trim(char_set="\n\r\t ").to_owned()
   } else {
     field.to_string()
   }
