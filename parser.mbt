@@ -148,16 +148,3 @@ test "CSV::parse_string/carriage_return_in_quotes" {
   assert_eq(csv.rows[0][1], "line\rwith\rCRs")
   // 123
 }
-
-/// "first,last,address,city,zip\nJohn,Doe,120 any st.,\"Anytown, WW\",08123"
-/// "a,b,c\r\n1,\"\",\"\"\r\n2,3,4"
-/// "a,b,c\n1,\"\",\"\"\n2,3,4"
-/// "a,b\n1,\"ha \"\"ha\"\" ha\"\n3,4\n"
-/// "key,val\n1,\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [102.0, 0.5]}\"\n"
-/// "Contact Phone Number,Location Coordinates,Cities,Counties\n2095257564,37�36'37.8\"N 121�2'17.9\"W,Modesto,Stanislaus"
-/// "a,b,c\r\n1,2,3\r\n\"Once upon \r\na time\",5,6\r\n7,8,9\r\n"
-/// "a,b,c\n1,2,3\n\"Once upon \na time\",5,6\n7,8,9\n"
-/// "a,b\n1,\"ha \n\"\"ha\"\" \nha\"\n3,4\n"
-/// "a,b,c\r\n1,2,3\r\n"
-/// "a,b,c\n1,2,3\n"
-/// "a,b,c\n1,2,3\n4,5,ʤ"

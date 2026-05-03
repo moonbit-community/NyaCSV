@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "xunyoyo/NyaCSV"
+package "moonbit-community/NyaCSV"
 
 import {
   "moonbitlang/core/buffer",

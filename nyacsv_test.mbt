@@ -106,7 +106,10 @@ test "CSV::new/basic" {
 
 ///|
 test "CSV::parse_string/basic_with_quoted_field" {
-  let data = "first,last,address,city,zip\nJohn,Doe,120 any st.,\"Anytown, WW\",08123"
+  let data =
+    #|first,last,address,city,zip
+    #|John,Doe,120 any st.,"Anytown, WW",08123
+    #|
   let csv = CSV::parse_string(data)
   inspect(
     csv.header(),
@@ -135,7 +138,11 @@ test "CSV::parse_string/crlf_with_empty_fields" {
 
 ///|
 test "CSV::parse_string/quoted_with_internal_quotes" {
-  let data = "a,b\n1,\"ha \"\"ha\"\" ha\"\n3,4\n"
+  let data =
+    #|a,b
+    #|1,"ha ""ha"" ha"
+    #|3,4
+    #|
   let csv = CSV::parse_string(data)
   inspect(csv.header(), content="[\"a\", \"b\"]")
   inspect(csv.data(), content="[[\"1\", \"ha \\\"ha\\\" ha\"], [\"3\", \"4\"]]")
@@ -146,7 +153,10 @@ test "CSV::parse_string/quoted_with_internal_quotes" {
 
 ///|
 test "CSV::parse_string/json_in_field" {
-  let data = "key,val\n1,\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [102.0, 0.5]}\"\n"
+  let data =
+    #|key,val
+    #|1,"{""type"": ""Point"", ""coordinates"": [102.0, 0.5]}"
+    #|
   let csv = CSV::parse_string(data)
   inspect(csv.header(), content="[\"key\", \"val\"]")
   // 验证JSON字符串被正确解析
@@ -158,7 +168,10 @@ test "CSV::parse_string/json_in_field" {
 
 ///|
 test "CSV::parse_string/special_characters" {
-  let data = "Contact Phone Number,Location Coordinates,Cities,Counties\n2095257564,37�36'37.8\"N 121�2'17.9\"W,Modesto,Stanislaus"
+  let data =
+    #|Contact Phone Number,Location Coordinates,Cities,Counties
+    #|2095257564,37�36'37.8"N 121�2'17.9"W,Modesto,Stanislaus
+    #|
   let csv = CSV::parse_string(data)
   inspect(
     csv.header(),
@@ -179,12 +192,21 @@ test "CSV::parse_string/multiline_fields_crlf" {
 
 ///|
 test "CSV::parse_string/multiline_fields_lf" {
-  let data = "a,b,c\n1,2,3\n\"Once upon \na time\",5,6\n7,8,9\n"
+  let data =
+    #|a,b,c
+    #|1,2,3
+    #|"Once upon 
+    #|a time",5,6
+    #|7,8,9
+    #|
   let csv = CSV::parse_string(data)
   inspect(csv.header(), content="[\"a\", \"b\", \"c\"]")
 
   // 验证LF换行符的多行字段正确处理
-  assert_eq(csv.data()[1][0], "Once upon \na time")
+  let expected =
+    #|Once upon 
+    #|a time
+  assert_eq(csv.data()[1][0], expected)
 }
 
 ///|
@@ -197,7 +219,11 @@ test "CSV::parse_string/simple_crlf" {
 
 ///|
 test "CSV::parse_string/unicode_characters" {
-  let data = "a,b,c\n1,2,3\n4,5,ʤ"
+  let data =
+    #|a,b,c
+    #|1,2,3
+    #|4,5,ʤ
+    #|
   let csv = CSV::parse_string(data)
   inspect(csv.header(), content="[\"a\", \"b\", \"c\"]")
   inspect(csv.data(), content="[[\"1\", \"2\", \"3\"], [\"4\", \"5\", \"ʤ\"]]")
@@ -208,7 +234,10 @@ test "CSV::parse_string/unicode_characters" {
 
 ///|
 test "CSV::parse_string/custom_delimiter" {
-  let data = "first;last;address\nJohn;Doe;\"120 any st., Anytown\""
+  let data =
+    #|first;last;address
+    #|John;Doe;"120 any st., Anytown"
+    #|
   let csv = CSV::parse_string(data, options=CSVOptions::{
     delimiter: ';',
     allow_newlines_in_quotes: true,
