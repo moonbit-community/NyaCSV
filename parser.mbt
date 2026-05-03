@@ -86,6 +86,7 @@ fn[T : CSVReader] parse(
       // 只有当字段为空时才进入引号模式
       if field.is_empty() {
         in_quotes = true
+        record_has_content = true
       } else {
         // 字段非空时遇到引号，视为普通字符
         field.write_char(ch)

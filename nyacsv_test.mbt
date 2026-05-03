@@ -226,6 +226,13 @@ test "CSV::parse_string/skips_empty_lines_by_default" {
 }
 
 ///|
+test "CSV::parse_string/preserves_empty_quoted_field_at_eof" {
+  let csv = CSV::parse_string("a\n\"\"")
+  inspect(csv.header(), content="[\"a\"]")
+  inspect(csv.data(), content="[[\"\"]]")
+}
+
+///|
 test "CSV::parse_string/unicode_characters" {
   let data =
     #|a,b,c
