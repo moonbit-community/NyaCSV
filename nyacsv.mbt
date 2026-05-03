@@ -151,17 +151,40 @@ test "CSV::output/row_with_missing_fields" {
 }
 
 ///|
+fn escape_csv_field(value : String) -> String {
+  if value.contains_any(chars=",\"\n\r") {
+    let escaped = value.replace_all(old="\"", new="\"\"")
+    let result = StringBuilder::new()
+    result.write_char('"')
+    result.write_string(escaped)
+    result.write_char('"')
+    result.to_string()
+  } else {
+    value
+  }
+}
+
+///|
+fn write_csv_row(result : StringBuilder, row : Array[String]) -> Unit {
+  for i in 0..<row.length() {
+    if i > 0 {
+      result.write_char(',')
+    }
+    result.write_string(escape_csv_field(row[i]))
+  }
+  result.write_char('\n')
+}
+
+///|
 pub impl Show for CSV with to_string(self) -> String {
   let result = StringBuilder::new()
 
   // 添加表头
-  result.write_string(self.headers.join(","))
-  result.write_char('\n')
+  write_csv_row(result, self.headers)
 
   // 添加数据行
   for row in self.rows {
-    result.write_string(row.join(","))
-    result.write_char('\n')
+    write_csv_row(result, row)
   }
   result.to_string()
 }
