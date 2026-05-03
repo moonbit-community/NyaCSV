@@ -239,6 +239,27 @@ test "CSV::shape/header_only_csv" {
 }
 
 ///|
+test "CSV::to_string/escapes_special_fields" {
+  let csv = CSV::from_array([
+    ["a", "b", "c"],
+    ["1", "x,y", "say \"hi\""],
+    ["2", "line\nbreak", "plain"],
+  ])
+  let expected =
+    #|a,b,c
+    #|1,"x,y","say ""hi"""
+    #|2,"line
+    #|break",plain
+    #|
+  inspect(csv.to_string(), content=expected)
+  let reparsed = CSV::parse_string(csv.to_string())
+  inspect(reparsed.header(), content="[\"a\", \"b\", \"c\"]")
+  assert_eq(reparsed.data()[0][1], "x,y")
+  assert_eq(reparsed.data()[0][2], "say \"hi\"")
+  assert_eq(reparsed.data()[1][1], "line\nbreak")
+}
+
+///|
 test "CSV::parse_string/unicode_characters" {
   let data =
     #|a,b,c
