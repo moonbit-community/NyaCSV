@@ -149,7 +149,7 @@ test "CSV::parse_string/carriage_return_in_quotes" {
   // 测试引号内的\r在允许引号内换行的情况下被保留
   let data = "a,b,c\n1,\"line\rwith\rCRs\",3 "
   let csv = CSV::parse_string(data)
-  inspect(csv.headers, content="[\"a\", \"b\", \"c\"]")
+  assert_true(csv.headers == ["a", "b", "c"])
 
   // 验证引号内的\r被正确保留
   assert_eq(csv.rows[0][1], "line\rwith\rCRs")
