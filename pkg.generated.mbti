@@ -15,10 +15,12 @@ pub fn CSV::data(Self) -> Array[Array[String]]
 pub fn CSV::from_array(Array[Array[String]], has_header? : Bool, generate_headers? : Bool) -> Self
 pub fn CSV::header(Self) -> Array[String]
 pub fn CSV::new() -> Self
+pub fn CSV::output(Self, &Logger) -> Unit
 pub fn CSV::parse_buffer(@buffer.Buffer, options? : CSVOptions) -> Self
 pub fn CSV::parse_bytes(Bytes, options? : CSVOptions) -> Self
 pub fn CSV::parse_string(String, options? : CSVOptions) -> Self
 pub fn CSV::shape(Self) -> (Int, Int)
+pub fn CSV::to_string(Self) -> String
 pub impl Show for CSV
 
 pub(all) struct CSVOptions {
@@ -32,4 +34,3 @@ pub(all) struct CSVOptions {
 // Type aliases
 
 // Traits
-

@@ -24,9 +24,9 @@ pub(all) struct CSVOptions {
 
 ///|
 priv trait CSVReader {
-  read_char(Self) -> Char?
-  peek_char(Self) -> Char?
-  is_eof(Self) -> Bool
+  fn read_char(Self) -> Char?
+  fn peek_char(Self) -> Char?
+  fn is_eof(Self) -> Bool
 }
 
 ///|
@@ -36,7 +36,7 @@ priv struct StringReader {
 }
 
 ///|
-impl CSVReader for StringReader with read_char(self) -> Char? {
+impl CSVReader for StringReader with fn read_char(self) -> Char? {
   if self.pos < self.source.length() {
     let ch = Int::unsafe_to_char(self.source.code_unit_at(self.pos).to_int())
     self.pos += 1
@@ -67,7 +67,7 @@ test "StringReader::read_char/past_end_of_string" {
 }
 
 ///|
-impl CSVReader for StringReader with peek_char(self) -> Char? {
+impl CSVReader for StringReader with fn peek_char(self) -> Char? {
   if self.pos < self.source.length() {
     Some(Int::unsafe_to_char(self.source.code_unit_at(self.pos).to_int()))
   } else {
@@ -96,6 +96,9 @@ test "StringReader::peek_char/at_end_of_string" {
 }
 
 ///|
-impl CSVReader for StringReader with is_eof(self) -> Bool {
+impl CSVReader for StringReader with fn is_eof(self) -> Bool {
   self.pos >= self.source.length()
 }
+
+///|
+extend StringReader with CSVReader::{read_char, peek_char}
