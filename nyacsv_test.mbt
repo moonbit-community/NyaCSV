@@ -1,9 +1,9 @@
 ///|
 test "CSV::output/empty_csv" {
   let csv = CSV::new()
-  let logger = @buffer.new()
+  let logger = StringBuilder()
   csv.output(logger)
-  inspect(logger.contents().to_unchecked_string(), content="<Empty CSV>")
+  inspect(logger.to_string(), content="<Empty CSV>")
 }
 
 ///|

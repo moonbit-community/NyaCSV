@@ -173,9 +173,9 @@ test "readme/formatted_table_output" {
     #|Ragdoll,USA,Large,"Calm, Affectionate"
     #|
   let csv = CSV::parse_string(data)
-  let logger = @buffer.new()
+  let logger = StringBuilder()
   csv.output(logger)
-  let table = logger.contents().to_unchecked_string()
+  let table = logger.to_string()
   assert_true(table.contains("Breed"))
   assert_true(table.contains("Maine Coon"))
   assert_true(table.contains("Gentle, Playful"))

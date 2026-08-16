@@ -50,7 +50,7 @@ fn draw_border(logger : &Logger, column_widths : Array[Int]) -> Unit {
 }
 
 ///|
-pub impl Show for CSV with output(self, logger) -> Unit {
+pub impl Show for CSV with fn output(self, logger) -> Unit {
   if self.headers.is_empty() {
     logger.write_string("<Empty CSV>")
   } else {
@@ -113,12 +113,15 @@ pub impl Show for CSV with output(self, logger) -> Unit {
 }
 
 ///|
+pub extend CSV with Show::{to_string, output}
+
+///|
 test "CSV::output/single_row_no_newline" {
   let csv = {
     headers: ["Name", "Age", "City"],
     rows: [["Alice", "30", "Wonderland"]],
   }
-  let logger = @buffer.new()
+  let logger = StringBuilder()
   csv.output(logger)
   let expected =
     #|+-------+-----+------------+
@@ -127,7 +130,7 @@ test "CSV::output/single_row_no_newline" {
     #|| Alice | 30  | Wonderland |
     #|+-------+-----+------------+
     #|
-  inspect(logger.contents().to_unchecked_string(), content=expected)
+  inspect(logger.to_string(), content=expected)
 }
 
 ///|
@@ -137,7 +140,7 @@ test "CSV::output/row_with_missing_fields" {
     headers: ["Name", "Age", "City", "Country"],
     rows: [["Alice", "30", "Wonderland", "Fantasy"], ["Bob", "25"]],
   } // 故意只提供两个字段，少于表头数量
-  let logger = @buffer.new()
+  let logger = StringBuilder()
   csv.output(logger)
   let expected =
     #|+-------+-----+------------+---------+
@@ -147,7 +150,7 @@ test "CSV::output/row_with_missing_fields" {
     #|| Bob   | 25  |            |         |
     #|+-------+-----+------------+---------+
     #|
-  inspect(logger.contents().to_unchecked_string(), content=expected)
+  inspect(logger.to_string(), content=expected)
 }
 
 ///|
@@ -176,7 +179,7 @@ fn write_csv_row(result : StringBuilder, row : Array[String]) -> Unit {
 }
 
 ///|
-pub impl Show for CSV with to_string(self) -> String {
+pub impl Show for CSV with fn to_string(self) -> String {
   let result = StringBuilder::new()
 
   // 添加表头
@@ -281,12 +284,12 @@ pub fn CSV::parse_string(
 
 ///|
 test "CSV::parse_buffer/basic" {
-  let buffer = @buffer.new()
+  let buffer = Buffer()
   let data =
     #|header1,header2
     #|value1,value2
     #|
-  buffer.write_string(data)
+  buffer.write_string_utf16le(data)
   let csv = CSV::parse_buffer(buffer)
   assert_true(csv.header() == ["header1", "header2"])
   assert_true(csv.data() == [["value1", "value2"]])
