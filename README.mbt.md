@@ -153,6 +153,12 @@ test "readme/generated_headers" {
 - `CSV::parse_string(data : String, options? : CSVOptions) -> CSV`
 - `CSV::parse_buffer(data : Buffer, options? : CSVOptions) -> CSV`
 - `CSV::parse_bytes(data : Bytes, options? : CSVOptions) -> CSV`
+- `CSV::parse_string_strict(data : String, options? : CSVOptions) -> Result[CSV, CSVParseError]`
+
+`parse_string_strict` validates quote placement, unterminated quoted fields,
+and record width before returning a `CSV`. Existing parsing methods remain
+permissive for compatibility. `CSVParseError` contains a human-readable
+`message` and one-based `line` and `column` fields.
 
 ### Creation Methods
 
