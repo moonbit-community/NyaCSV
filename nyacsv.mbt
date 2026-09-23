@@ -14,6 +14,177 @@ struct CSV {
 }
 
 ///|
+/// Parse failures returned by the strict parsing APIs.
+pub struct CSVParseError {
+  message : String
+  line : Int
+  column : Int
+}
+
+///|
+/// Create a precise parse error without exposing scanner internals.
+fn parse_error(message : String, line : Int, column : Int) -> CSVParseError {
+  { message, line, column, }
+}
+
+///|
+fn strict_char_at(data : String, index : Int) -> Char {
+  Int::unsafe_to_char(data.code_unit_at(index).to_int())
+}
+
+///|
+/// Parse a CSV string while rejecting malformed quoting and ragged rows.
+pub fn CSV::parse_string_strict(
+  data : String,
+  options? : CSVOptions = {
+    delimiter: ',',
+    allow_newlines_in_quotes: true,
+    quote_char: '"',
+    skip_empty_lines: true,
+    trim_spaces: false,
+  },
+) -> Result[CSV, CSVParseError] {
+  let delimiter = options.delimiter
+  let quote = options.quote_char
+  let mut line = 1
+  let mut column = 1
+  let mut index = 0
+  let mut in_quotes = false
+  let mut after_quote = false
+  let mut field_has_content = false
+  let mut record_has_content = false
+  let mut fields_in_record = 1
+  let mut expected_fields : Int? = None
+  let mut quote_line = 1
+  let mut quote_column = 1
+
+  while index < data.length() {
+    let ch = strict_char_at(data, index)
+    if in_quotes {
+      if ch == quote {
+        if index + 1 < data.length() && strict_char_at(data, index + 1) == quote {
+          index += 2
+          column += 2
+          continue
+        }
+        in_quotes = false
+        after_quote = true
+        index += 1
+        column += 1
+        continue
+      }
+      if (ch == '\n' || ch == '\r') && !options.allow_newlines_in_quotes {
+        return Err(
+          parse_error("newline inside quoted field is disabled", line, column),
+        )
+      }
+      if ch == '\n' {
+        line += 1
+        column = 1
+      } else {
+        column += 1
+      }
+      index += 1
+      continue
+    }
+
+    if after_quote {
+      if ch == delimiter {
+        after_quote = false
+        field_has_content = false
+        fields_in_record += 1
+        index += 1
+        column += 1
+        continue
+      }
+      if ch == '\n' || ch == '\r' {
+        after_quote = false
+      } else {
+        return Err(
+          parse_error("unexpected character after closing quote", line, column),
+        )
+      }
+    }
+
+    if ch == quote {
+      if field_has_content {
+        return Err(
+          parse_error(
+            "quote must start at the beginning of a field", line, column,
+          ),
+        )
+      }
+      in_quotes = true
+      record_has_content = true
+      quote_line = line
+      quote_column = column
+      index += 1
+      column += 1
+      continue
+    }
+    if ch == delimiter {
+      field_has_content = false
+      record_has_content = true
+      fields_in_record += 1
+      index += 1
+      column += 1
+      continue
+    }
+    if ch == '\n' || ch == '\r' {
+      if ch == '\r' &&
+        index + 1 < data.length() &&
+        strict_char_at(data, index + 1) == '\n' {
+        index += 1
+      }
+      if record_has_content || !options.skip_empty_lines {
+        match expected_fields {
+          None => expected_fields = Some(fields_in_record)
+          Some(expected) =>
+            if expected != fields_in_record {
+              return Err(
+                parse_error(
+                  "row has an inconsistent number of fields", line, column,
+                ),
+              )
+            }
+        }
+      }
+      fields_in_record = 1
+      field_has_content = false
+      record_has_content = false
+      line += 1
+      column = 1
+      index += 1
+      continue
+    }
+    field_has_content = true
+    record_has_content = true
+    index += 1
+    column += 1
+  }
+
+  if in_quotes {
+    return Err(
+      parse_error("unterminated quoted field", quote_line, quote_column),
+    )
+  }
+  if after_quote || record_has_content || fields_in_record > 1 {
+    match expected_fields {
+      None => expected_fields = Some(fields_in_record)
+      Some(expected) =>
+        if expected != fields_in_record {
+          return Err(
+            parse_error(
+              "row has an inconsistent number of fields", line, column,
+            ),
+          )
+        }
+    }
+  }
+  Ok(CSV::parse_string(data, options~))
+}
+
+///|
 /// header of the CSV.
 pub fn CSV::header(self : CSV) -> Array[String] {
   self.headers
@@ -50,7 +221,7 @@ fn draw_border(logger : &Logger, column_widths : Array[Int]) -> Unit {
 }
 
 ///|
-pub impl Show for CSV with output(self, logger) -> Unit {
+pub impl Show for CSV with fn output(self, logger) -> Unit {
   if self.headers.is_empty() {
     logger.write_string("<Empty CSV>")
   } else {
@@ -176,7 +347,7 @@ fn write_csv_row(result : StringBuilder, row : Array[String]) -> Unit {
 }
 
 ///|
-pub impl Show for CSV with to_string(self) -> String {
+pub impl Show for CSV with fn to_string(self) -> String {
   let result = StringBuilder::new()
 
   // 添加表头
@@ -191,7 +362,7 @@ pub impl Show for CSV with to_string(self) -> String {
 
 ///|
 test "CSV::to_string/single_header_no_rows" {
-  let csv = { headers: ["Name"], rows: [] }
+  let csv = { headers: ["Name"], rows: [], }
   let expected =
     #|Name
     #|
@@ -220,7 +391,7 @@ test "CSV::to_string/headers_and_rows" {
 pub fn CSV::new() -> CSV {
   let headers : Array[String] = Array::new()
   let rows : Array[Array[String]] = Array::new()
-  { headers, rows }
+  { headers, rows, }
 }
 
 ///|
@@ -234,15 +405,15 @@ pub fn CSV::from_array(
   } else if has_header {
     let headers = data[0]
     let rows = data[1:data.length()].iter().collect()
-    { headers, rows }
+    { headers, rows, }
   } else if generate_headers {
     let column_count = data[0].length()
     let headers = Array::makei(column_count, fn(i) { "column\{i+1}" })
-    { headers, rows: data }
+    { headers, rows: data, }
   } else {
     let column_count = data[0].length()
     let headers = Array::make(column_count, "")
-    { headers, rows: data }
+    { headers, rows: data, }
   }
 }
 
@@ -275,7 +446,7 @@ pub fn CSV::parse_string(
     trim_spaces: false,
   },
 ) -> CSV {
-  let reader : StringReader = { source: data, pos: 0 }
+  let reader : StringReader = { source: data, pos: 0, }
   CSV::from_array(parse(reader, options~))
 }
 
@@ -288,8 +459,8 @@ test "CSV::parse_buffer/basic" {
     #|
   buffer.write_string(data)
   let csv = CSV::parse_buffer(buffer)
-  assert_true(csv.header() == ["header1", "header2"])
-  assert_true(csv.data() == [["value1", "value2"]])
+  inspect(csv.header(), content="[\"header1\", \"header2\"]")
+  inspect(csv.data(), content="[[\"value1\", \"value2\"]]")
 }
 
 ///|
@@ -358,7 +529,7 @@ pub fn CSV::parse_bytes(
   },
 ) -> CSV {
   let source = @encoding/utf8.decode_lossy(data)
-  let reader : StringReader = { source, pos: 0 }
+  let reader : StringReader = { source, pos: 0, }
   CSV::from_array(parse(reader, options~))
 }
 
@@ -370,6 +541,6 @@ test "CSV::parse_bytes/basic_csv" {
     #|
   let data = @encoding/utf8.encode(source)
   let csv = CSV::parse_bytes(data)
-  assert_true(csv.header() == ["header1", "header2"])
-  assert_true(csv.data() == [["value1", "value2"]])
+  inspect(csv.header(), content="[\"header1\", \"header2\"]")
+  inspect(csv.data(), content="[[\"value1\", \"value2\"]]")
 }
