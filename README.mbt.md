@@ -26,7 +26,7 @@ test "readme/quick_start" {
     #|Mittens,3,Ball of yarn
     #|Whiskers,5,Laser pointer
     #|
-  let csv = CSV::parse_string(data)
+  let csv = @NyaCSV.CSV::parse_string(data)
   let (rows, columns) = csv.shape()
   assert_eq(rows, 2)
   assert_eq(columns, 3)
@@ -53,7 +53,7 @@ test "readme/custom_options" {
     #|Simba;"Playful orange tabby
     #|Loves treats";Yes
     #|
-  let csv = CSV::parse_string(data, options={
+  let csv = @NyaCSV.CSV::parse_string(data, options={
     delimiter: ';',
     allow_newlines_in_quotes: true,
     quote_char: '"',
@@ -81,7 +81,7 @@ test "readme/create_from_array" {
     ["Luna", "2"],
     ["Oliver", "1"],
   ]
-  let csv = CSV::from_array(data)
+  let csv = @NyaCSV.CSV::from_array(data)
   assert_eq(csv.header().length(), 2)
   assert_eq(csv.data().length(), 2)
   assert_eq(csv.header()[0], "Name")
@@ -106,7 +106,7 @@ test "readme/array_input" {
     ["Oliver", "1", "Tabby", "No"],
     ["Bella", "4", "Calico", "Yes"],
   ]
-  let csv = CSV::from_array(shelter_data)
+  let csv = @NyaCSV.CSV::from_array(shelter_data)
   let (rows, columns) = csv.shape()
   assert_eq(rows, 3)
   assert_eq(columns, 4)
@@ -124,7 +124,11 @@ test "readme/generated_headers" {
     ["Alice", "30", "Wonderland"],
     ["Bob", "25", "Builderland"],
   ]
-  let csv = CSV::from_array(data, has_header=false, generate_headers=true)
+  let csv = @NyaCSV.CSV::from_array(
+    data,
+    has_header=false,
+    generate_headers=true,
+  )
   assert_eq(csv.header()[0], "column1")
   assert_eq(csv.header()[1], "column2")
   assert_eq(csv.header()[2], "column3")
@@ -172,10 +176,10 @@ test "readme/formatted_table_output" {
     #|Maine Coon,USA,Large,"Gentle, Playful"
     #|Ragdoll,USA,Large,"Calm, Affectionate"
     #|
-  let csv = CSV::parse_string(data)
-  let logger = @buffer.new()
+  let csv = @NyaCSV.CSV::parse_string(data)
+  let logger = StringBuilder()
   csv.output(logger)
-  let table = logger.contents().to_unchecked_string()
+  let table = logger.to_string()
   assert_true(table.contains("Breed"))
   assert_true(table.contains("Maine Coon"))
   assert_true(table.contains("Gentle, Playful"))
@@ -194,7 +198,7 @@ test "readme/multiline_fields" {
     #|Max,"Max is quiet.
     #|He sleeps often."
     #|
-  let csv = CSV::parse_string(data)
+  let csv = @NyaCSV.CSV::parse_string(data)
   assert_eq(csv.header()[1], "Bio")
   let lucy_bio =
     #|Lucy is curious.

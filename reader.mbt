@@ -24,9 +24,9 @@ pub(all) struct CSVOptions {
 
 ///|
 priv trait CSVReader {
-  read_char(Self) -> Char?
-  peek_char(Self) -> Char?
-  is_eof(Self) -> Bool
+  fn read_char(Self) -> Char?
+  fn peek_char(Self) -> Char?
+  fn is_eof(Self) -> Bool
 }
 
 ///|
@@ -36,7 +36,7 @@ priv struct StringReader {
 }
 
 ///|
-impl CSVReader for StringReader with read_char(self) -> Char? {
+impl CSVReader for StringReader with fn read_char(self) -> Char? {
   if self.pos < self.source.length() {
     let ch = Int::unsafe_to_char(self.source.code_unit_at(self.pos).to_int())
     self.pos += 1
@@ -48,26 +48,26 @@ impl CSVReader for StringReader with read_char(self) -> Char? {
 
 ///|
 test "StringReader::read_char/normal_case" {
-  let reader : StringReader = { source: "Hello, World!", pos: 0 }
-  assert_true(reader.read_char() is Some('H'))
-  assert_true(reader.read_char() is Some('e'))
-  assert_true(reader.read_char() is Some('l'))
+  let reader : StringReader = { source: "Hello, World!", pos: 0, }
+  assert_true(CSVReader::read_char(reader) is Some('H'))
+  assert_true(CSVReader::read_char(reader) is Some('e'))
+  assert_true(CSVReader::read_char(reader) is Some('l'))
 }
 
 ///|
 test "StringReader::read_char/empty_string" {
-  let reader : StringReader = { source: "", pos: 0 }
-  assert_true(reader.read_char() is None)
+  let reader : StringReader = { source: "", pos: 0, }
+  assert_true(CSVReader::read_char(reader) is None)
 }
 
 ///|
 test "StringReader::read_char/past_end_of_string" {
-  let reader : StringReader = { source: "Hello", pos: 5 } // 'pos' is set to the length of the string
-  assert_true(reader.read_char() is None)
+  let reader : StringReader = { source: "Hello", pos: 5, } // 'pos' is set to the length of the string
+  assert_true(CSVReader::read_char(reader) is None)
 }
 
 ///|
-impl CSVReader for StringReader with peek_char(self) -> Char? {
+impl CSVReader for StringReader with fn peek_char(self) -> Char? {
   if self.pos < self.source.length() {
     Some(Int::unsafe_to_char(self.source.code_unit_at(self.pos).to_int()))
   } else {
@@ -77,25 +77,25 @@ impl CSVReader for StringReader with peek_char(self) -> Char? {
 
 ///|
 test "StringReader::peek_char/normal_case" {
-  let reader : StringReader = { source: "Hello, World!", pos: 0 }
-  assert_true(reader.peek_char() is Some('H'))
+  let reader : StringReader = { source: "Hello, World!", pos: 0, }
+  assert_true(CSVReader::peek_char(reader) is Some('H'))
   reader.pos = 7
-  assert_true(reader.peek_char() is Some('W'))
+  assert_true(CSVReader::peek_char(reader) is Some('W'))
 }
 
 ///|
 test "StringReader::peek_char/empty_string" {
-  let reader : StringReader = { source: "", pos: 0 }
-  assert_true(reader.peek_char() is None)
+  let reader : StringReader = { source: "", pos: 0, }
+  assert_true(CSVReader::peek_char(reader) is None)
 }
 
 ///|
 test "StringReader::peek_char/at_end_of_string" {
-  let reader : StringReader = { source: "Hello", pos: 5 } // 'pos' is set to the length of the string
-  assert_true(reader.peek_char() is None)
+  let reader : StringReader = { source: "Hello", pos: 5, } // 'pos' is set to the length of the string
+  assert_true(CSVReader::peek_char(reader) is None)
 }
 
 ///|
-impl CSVReader for StringReader with is_eof(self) -> Bool {
+impl CSVReader for StringReader with fn is_eof(self) -> Bool {
   self.pos >= self.source.length()
 }

@@ -50,7 +50,10 @@ fn draw_border(logger : &Logger, column_widths : Array[Int]) -> Unit {
 }
 
 ///|
-pub impl Show for CSV with output(self, logger) -> Unit {
+pub extend CSV with Show::{to_string, output}
+
+///|
+pub impl Show for CSV with fn output(self, logger) -> Unit {
   if self.headers.is_empty() {
     logger.write_string("<Empty CSV>")
   } else {
@@ -118,7 +121,7 @@ test "CSV::output/single_row_no_newline" {
     headers: ["Name", "Age", "City"],
     rows: [["Alice", "30", "Wonderland"]],
   }
-  let logger = @buffer.new()
+  let logger = StringBuilder()
   csv.output(logger)
   let expected =
     #|+-------+-----+------------+
@@ -127,7 +130,7 @@ test "CSV::output/single_row_no_newline" {
     #|| Alice | 30  | Wonderland |
     #|+-------+-----+------------+
     #|
-  inspect(logger.contents().to_unchecked_string(), content=expected)
+  inspect(logger.to_string(), content=expected)
 }
 
 ///|
@@ -137,7 +140,7 @@ test "CSV::output/row_with_missing_fields" {
     headers: ["Name", "Age", "City", "Country"],
     rows: [["Alice", "30", "Wonderland", "Fantasy"], ["Bob", "25"]],
   } // 故意只提供两个字段，少于表头数量
-  let logger = @buffer.new()
+  let logger = StringBuilder()
   csv.output(logger)
   let expected =
     #|+-------+-----+------------+---------+
@@ -147,14 +150,14 @@ test "CSV::output/row_with_missing_fields" {
     #|| Bob   | 25  |            |         |
     #|+-------+-----+------------+---------+
     #|
-  inspect(logger.contents().to_unchecked_string(), content=expected)
+  inspect(logger.to_string(), content=expected)
 }
 
 ///|
 fn escape_csv_field(value : String) -> String {
   if value.contains_any(chars=",\"\n\r") {
     let escaped = value.replace_all(old="\"", new="\"\"")
-    let result = StringBuilder::new()
+    let result = StringBuilder()
     result.write_char('"')
     result.write_string(escaped)
     result.write_char('"')
@@ -176,8 +179,8 @@ fn write_csv_row(result : StringBuilder, row : Array[String]) -> Unit {
 }
 
 ///|
-pub impl Show for CSV with to_string(self) -> String {
-  let result = StringBuilder::new()
+pub impl Show for CSV with fn to_string(self) -> String {
+  let result = StringBuilder()
 
   // 添加表头
   write_csv_row(result, self.headers)
@@ -191,7 +194,7 @@ pub impl Show for CSV with to_string(self) -> String {
 
 ///|
 test "CSV::to_string/single_header_no_rows" {
-  let csv = { headers: ["Name"], rows: [] }
+  let csv = { headers: ["Name"], rows: [], }
   let expected =
     #|Name
     #|
@@ -218,9 +221,9 @@ test "CSV::to_string/headers_and_rows" {
 /// Returns a new CSV instance with empty headers and rows arrays.
 ///
 pub fn CSV::new() -> CSV {
-  let headers : Array[String] = Array::new()
-  let rows : Array[Array[String]] = Array::new()
-  { headers, rows }
+  let headers : Array[String] = []
+  let rows : Array[Array[String]] = []
+  { headers, rows, }
 }
 
 ///|
@@ -234,15 +237,15 @@ pub fn CSV::from_array(
   } else if has_header {
     let headers = data[0]
     let rows = data[1:data.length()].iter().collect()
-    { headers, rows }
+    { headers, rows, }
   } else if generate_headers {
     let column_count = data[0].length()
     let headers = Array::makei(column_count, fn(i) { "column\{i+1}" })
-    { headers, rows: data }
+    { headers, rows: data, }
   } else {
     let column_count = data[0].length()
     let headers = Array::make(column_count, "")
-    { headers, rows: data }
+    { headers, rows: data, }
   }
 }
 
@@ -275,18 +278,18 @@ pub fn CSV::parse_string(
     trim_spaces: false,
   },
 ) -> CSV {
-  let reader : StringReader = { source: data, pos: 0 }
+  let reader : StringReader = { source: data, pos: 0, }
   CSV::from_array(parse(reader, options~))
 }
 
 ///|
 test "CSV::parse_buffer/basic" {
-  let buffer = @buffer.new()
+  let buffer = Buffer()
   let data =
     #|header1,header2
     #|value1,value2
     #|
-  buffer.write_string(data)
+  buffer.write_string_utf16le(data)
   let csv = CSV::parse_buffer(buffer)
   assert_true(csv.header() == ["header1", "header2"])
   assert_true(csv.data() == [["value1", "value2"]])
@@ -358,7 +361,7 @@ pub fn CSV::parse_bytes(
   },
 ) -> CSV {
   let source = @encoding/utf8.decode_lossy(data)
-  let reader : StringReader = { source, pos: 0 }
+  let reader : StringReader = { source, pos: 0, }
   CSV::from_array(parse(reader, options~))
 }
 
