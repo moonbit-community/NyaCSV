@@ -1,0 +1,13 @@
+name = "moonbit-community/NyaCSV"
+
+version = "0.3.3"
+
+readme = "README.mbt.md"
+
+repository = "https://github.com/moonbit-community/NyaCSV"
+
+license = "Apache-2.0"
+
+keywords = [ "CSV", "Parser" ]
+
+description = "Purr-fectly parse your CSV files with delightful simplicity!"

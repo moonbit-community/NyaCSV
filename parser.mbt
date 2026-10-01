@@ -18,9 +18,9 @@ fn[T : CSVReader] parse(
     trim_spaces: false,
   },
 ) -> Array[Array[String]] {
-  let rows : Array[Array[String]] = Array::new()
+  let rows : Array[Array[String]] = []
   let mut row = Array::make(0, "")
-  let mut field = StringBuilder::new()
+  let mut field = StringBuilder()
   let mut in_quotes = false
   let mut record_has_content = false
   while !reader.is_eof() {
@@ -74,7 +74,7 @@ fn[T : CSVReader] parse(
 
         // 重置用于下一行
         row = Array::make(0, "")
-        field = StringBuilder::new()
+        field = StringBuilder()
         record_has_content = false
       } else {
         // 引号内普通字符，加入当前字段
@@ -95,7 +95,7 @@ fn[T : CSVReader] parse(
     } else if ch == options.delimiter {
       // 遇到分隔符，当前字段结束
       row.push(field_to_string(field, options))
-      field = StringBuilder::new() // 创建新的字段构建器
+      field = StringBuilder() // 创建新的字段构建器
       record_has_content = true
     } else if ch == '\n' {
       // 遇到换行且不在引号内，当前记录结束
@@ -107,7 +107,7 @@ fn[T : CSVReader] parse(
 
       // 重置用于下一行
       row = Array::make(0, "")
-      field = StringBuilder::new()
+      field = StringBuilder()
       record_has_content = false
     } else {
       // 普通字符，累积到当前字段

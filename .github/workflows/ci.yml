@@ -25,6 +25,9 @@ jobs:
           moon update
           moon check --deny-warn
 
+      - name: Check formatting
+        run: moon fmt --check
+
       - name: Run tests with coverage
         run: |
           moon test --enable-coverage
