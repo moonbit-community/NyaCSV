@@ -32,13 +32,13 @@ priv trait CSVReader {
 ///|
 priv struct StringReader {
   source : String
-  mut pos : Int
+  mut pos : Int32
 }
 
 ///|
 impl CSVReader for StringReader with fn read_char(self) -> Char? {
   if self.pos < self.source.length() {
-    let ch = Int::unsafe_to_char(self.source.code_unit_at(self.pos).to_int())
+    let ch = Int32::unsafe_to_char(self.source.code_unit_at(self.pos).to_int())
     self.pos += 1
     Some(ch)
   } else {
@@ -69,7 +69,7 @@ test "StringReader::read_char/past_end_of_string" {
 ///|
 impl CSVReader for StringReader with fn peek_char(self) -> Char? {
   if self.pos < self.source.length() {
-    Some(Int::unsafe_to_char(self.source.code_unit_at(self.pos).to_int()))
+    Some(Int32::unsafe_to_char(self.source.code_unit_at(self.pos).to_int()))
   } else {
     None
   }
