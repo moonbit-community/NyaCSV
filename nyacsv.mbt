@@ -27,7 +27,7 @@ pub fn CSV::data(self : CSV) -> Array[Array[String]] {
 
 ///|
 /// shape of the CSV.
-pub fn CSV::shape(self : CSV) -> (Int, Int) {
+pub fn CSV::shape(self : CSV) -> (Int32, Int32) {
   let row_count = self.rows.length()
   let column_count = if self.headers.length() > 0 {
     self.headers.length()
@@ -40,7 +40,7 @@ pub fn CSV::shape(self : CSV) -> (Int, Int) {
 }
 
 ///|
-fn draw_border(logger : &Logger, column_widths : Array[Int]) -> Unit {
+fn draw_border(logger : &Logger, column_widths : Array[Int32]) -> Unit {
   logger.write_string("+")
   for width in column_widths {
     logger.write_string("-".repeat(width + 2))
@@ -57,7 +57,7 @@ pub impl Show for CSV with fn output(self, logger) -> Unit {
   if self.headers.is_empty() {
     logger.write_string("<Empty CSV>")
   } else {
-    let column_widths : Array[Int] = Array::make(self.headers.length(), 0)
+    let column_widths : Array[Int32] = Array::make(self.headers.length(), 0)
 
     // 计算表头宽度
     for i in 0..<self.headers.length() {
@@ -229,8 +229,8 @@ pub fn CSV::new() -> CSV {
 ///|
 pub fn CSV::from_array(
   data : Array[Array[String]],
-  has_header? : Bool = true,
-  generate_headers? : Bool = true,
+  has_header~ : Bool = true,
+  generate_headers~ : Bool = true,
 ) -> CSV {
   if data.is_empty() {
     CSV::new()
@@ -270,7 +270,7 @@ pub fn CSV::from_array(
 /// first row and subsequent rows as data.
 pub fn CSV::parse_string(
   data : String,
-  options? : CSVOptions = {
+  options~ : CSVOptions = {
     delimiter: ',',
     allow_newlines_in_quotes: true,
     quote_char: '"',
@@ -316,7 +316,7 @@ test "CSV::parse_buffer/basic" {
 /// first row and subsequent rows as data.
 pub fn CSV::parse_buffer(
   data : @buffer.Buffer,
-  options? : CSVOptions = {
+  options~ : CSVOptions = {
     delimiter: ',',
     allow_newlines_in_quotes: true,
     quote_char: '"',
@@ -352,7 +352,7 @@ pub fn CSV::parse_buffer(
 /// first row and subsequent rows as data.
 pub fn CSV::parse_bytes(
   data : Bytes,
-  options? : CSVOptions = {
+  options~ : CSVOptions = {
     delimiter: ',',
     allow_newlines_in_quotes: true,
     quote_char: '"',
